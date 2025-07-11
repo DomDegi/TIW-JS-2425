@@ -181,10 +181,18 @@
 			pubblicaButton.disabled = !stati["INSERITO"] || stati["INSERITO"] === 0;
 			
 			// Verbalizza: abilita se ci sono studenti PUBBLICATO o RIFIUTATO
-			verbalizzaButton.disabled = !((stati["PUBBLICATO"] && stati["PUBBLICATO"] > 0) || (stati["RIFIUTATO"] && stati["RIFIUTATO"] > 0));
+			const studentiVerbalizzabili = (stati["PUBBLICATO"] || 0) + (stati["RIFIUTATO"] || 0);
+			verbalizzaButton.disabled = studentiVerbalizzabili === 0;
 			
 			// Inserimento multiplo: abilita se ci sono studenti NON_INSERITO
 			inserimentoMultiploBtn.disabled = !stati["NON_INSERITO"] || stati["NON_INSERITO"] === 0;
+			
+			// Aggiungi tooltip o messaggio informativo per il pulsante verbalizza
+			if (verbalizzaButton.disabled) {
+				verbalizzaButton.title = "Nessuno studente con voto pubblicato o rifiutato da verbalizzare";
+			} else {
+				verbalizzaButton.title = `Verbalizza ${studentiVerbalizzabili} studente/i`;
+			}
 		};
 		this.sortBy = function(key) {
 			if (this.currentSort.key === key) {
@@ -372,6 +380,23 @@
 					document.getElementById("message").textContent = "Nessun appello selezionato.";
 					return;
 				}
+				
+				// Controlla se ci sono studenti da verbalizzare
+				if (!this.iscritti.iscrittiList || this.iscritti.iscrittiList.length === 0) {
+					document.getElementById("message").textContent = "Nessuno studente da verbalizzare.";
+					return;
+				}
+				
+				// Conta gli studenti che possono essere verbalizzati
+				const studentiVerbalizzabili = this.iscritti.iscrittiList.filter(s => 
+					s.statoDiValutazione === "PUBBLICATO" || s.statoDiValutazione === "RIFIUTATO"
+				);
+				
+				if (studentiVerbalizzabili.length === 0) {
+					document.getElementById("message").textContent = "Nessuno studente con voto pubblicato o rifiutato da verbalizzare.";
+					return;
+				}
+				
 				makeCall("POST", "pagina-verbale?id_appello=" + this.iscritti.currentAppelloId, null, (req) => {
 					if (req.readyState === XMLHttpRequest.DONE) {
 						if (req.status === 200) {
@@ -425,9 +450,9 @@
 				const studenteId = document.getElementById("modificaStudenteForm").dataset.studenteId;
 				const appelloId = document.getElementById("modificaStudenteForm").dataset.appelloId;
 				const voto = document.getElementById("modVoto").value;
-				const validi = ["18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "30L", "30l", "ASSENTE", "RIPROVATO"];
+				const validi = ["18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "30L", "30l", "ASSENTE", "assente", "Assente", "RIPROVATO", "riprovato", "Riprovato", "RIMANDATO", "rimandato", "Rimandato"];
 				if (!validi.includes(voto)) {
-					document.getElementById("message").textContent = "Voto non valido, riprova.";
+					document.getElementById("message").textContent = "Voto non valido. Voti validi: 18-30, 30L, ASSENTE, RIPROVATO, RIMANDATO";
 					return;
 				}
 				makeCall("POST", "inserisci-valutazione?id_studente=" + studenteId + "&id_appello=" + appelloId + "&voto=" + voto, null, (req) => {
@@ -446,6 +471,29 @@
 				event.preventDefault();
 				const appelloId = pageOrchestrator.iscritti.currentAppelloId;
 				const rows = document.querySelectorAll("#inserimentoMultiploBody tr");
+				const validi = ["18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "30L", "30l", "ASSENTE", "assente", "Assente", "RIPROVATO", "riprovato", "Riprovato", "RIMANDATO", "rimandato", "Rimandato"];
+				
+				// Controlla validità di tutti i voti inseriti
+				let hasInvalidVotes = false;
+				let invalidVotes = [];
+				
+				rows.forEach(row => {
+					const studenteId = row.getAttribute("data-studente-id");
+					const votoInput = row.querySelector("input[name='voto']");
+					const voto = votoInput.value.trim();
+					
+					if (voto !== "" && !validi.includes(voto)) {
+						hasInvalidVotes = true;
+						const matricola = row.querySelector("td").textContent;
+						invalidVotes.push(`Matricola ${matricola}: "${voto}"`);
+					}
+				});
+				
+				if (hasInvalidVotes) {
+					document.getElementById("message").textContent = "Voti non validi: " + invalidVotes.join(", ") + ". Voti validi: 18-30, 30L, ASSENTE, RIPROVATO, RIMANDATO";
+					return;
+				}
+				
 				const requests = Array.from(rows).map(row => {
 					const studenteId = row.getAttribute("data-studente-id");
 					const votoInput = row.querySelector("input[name='voto']");
@@ -470,8 +518,13 @@
 					pageOrchestrator.iscritti.show(appelloId);
 					document.getElementById("inserimentoMultiploModal").style.display = "none";
 					document.body.style.overflow = "auto";
+					document.getElementById("message").textContent = "Voti inseriti con successo!";
+					setTimeout(() => {
+						document.getElementById("message").textContent = "";
+					}, 3000);
 				}).catch(error => {
 					console.error("Errore durante l'inserimento dei voti:", error);
+					document.getElementById("message").textContent = "Errore durante l'inserimento dei voti";
 				});
 			});
 		};

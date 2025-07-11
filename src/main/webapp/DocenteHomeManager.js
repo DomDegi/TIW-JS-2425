@@ -120,6 +120,8 @@
 						self.iscrittiList = JSON.parse(req.responseText);
 						self.renderTable(self.iscrittiList);
 						self.iscrittiSection.style.display = "block";
+						// Show home button when viewing iscritti
+						document.getElementById("homeButton").style.display = "block";
 					} else {
 						document.getElementById("message").textContent = req.responseText;
 					}
@@ -151,6 +153,38 @@
 				row.appendChild(azioniCell);
 				this.iscrittiBody.appendChild(row);
 			});
+			
+			// Aggiorna lo stato dei pulsanti
+			this.updateButtonStates();
+		};
+		
+		this.updateButtonStates = function() {
+			const pubblicaButton = document.getElementById("pubblicaButton");
+			const verbalizzaButton = document.getElementById("verbalizzaButton");
+			const inserimentoMultiploBtn = document.getElementById("inserimentoMultiploBtn");
+			
+			if (!this.iscrittiList || this.iscrittiList.length === 0) {
+				pubblicaButton.disabled = true;
+				verbalizzaButton.disabled = true;
+				inserimentoMultiploBtn.disabled = true;
+				return;
+			}
+			
+			// Conta gli studenti per ogni stato
+			const stati = this.iscrittiList.reduce((acc, studente) => {
+				const stato = studente.statoDiValutazione;
+				acc[stato] = (acc[stato] || 0) + 1;
+				return acc;
+			}, {});
+			
+			// Pubblica: abilita se ci sono studenti INSERITO
+			pubblicaButton.disabled = !stati["INSERITO"] || stati["INSERITO"] === 0;
+			
+			// Verbalizza: abilita se ci sono studenti PUBBLICATO o RIFIUTATO
+			verbalizzaButton.disabled = !((stati["PUBBLICATO"] && stati["PUBBLICATO"] > 0) || (stati["RIFIUTATO"] && stati["RIFIUTATO"] > 0));
+			
+			// Inserimento multiplo: abilita se ci sono studenti NON_INSERITO
+			inserimentoMultiploBtn.disabled = !stati["NON_INSERITO"] || stati["NON_INSERITO"] === 0;
 		};
 		this.sortBy = function(key) {
 			if (this.currentSort.key === key) {
@@ -230,6 +264,8 @@
 		document.getElementById("appelliSection").style.display = "none";
 		document.getElementById("iscrittiSection").style.display = "none";
 		document.getElementById("modificaStudenteSection").style.display = "block";
+		// Show home button when modifying student
+		document.getElementById("homeButton").style.display = "block";
 		makeCall("GET", "inserisci-valutazione?id_studente=" + iscritto.id_studente + "&id_appello=" + iscritto.id_appello, null, function(req) {
 			if (req.readyState == XMLHttpRequest.DONE) {
 				if (req.status == 200) {
@@ -257,6 +293,8 @@
 		document.getElementById("iscrittiSection").style.display = "none";
 		const verbaleSection = document.getElementById('verbaleSection');
 		verbaleSection.style.display = 'block';
+		// Show home button when viewing verbale
+		document.getElementById("homeButton").style.display = "block";
 		
 		document.getElementById('verbaleId').textContent = verbale.id_verbale || '-';
 		document.getElementById('verbaleData').textContent = verbale.dataVerbale || '-';
@@ -283,6 +321,8 @@
 		document.getElementById("iscrittiSection").style.display = "none";
 		document.getElementById("message").textContent = "";
 		document.getElementById("elencoVerbaliSection").style.display = "block";
+		// Show home button when viewing verbali list
+		document.getElementById("homeButton").style.display = "block";
 		const tbody = document.getElementById("elencoVerbaliBody");
 		tbody.innerHTML = '';
 		makeCall("GET", "elenco-verbali", null, (req) => {
@@ -322,6 +362,11 @@
 			this.appelli = new Appelli(document.getElementById("appelliSection"), document.getElementById("appelliBody"));
 			this.iscritti = new Iscritti(document.getElementById("iscrittiSection"), document.getElementById("iscrittiBody"));
 			this.iscritti.attachSortHandlers();
+			
+			// Home button event handler
+			document.getElementById("homeButton").addEventListener("click", () => {
+				this.showCorsiSection();
+			});
 			document.getElementById("verbalizzaButton").addEventListener("click", () => {
 				if (this.iscritti.currentAppelloId == null) {
 					document.getElementById("message").textContent = "Nessun appello selezionato.";
@@ -435,6 +480,23 @@
 			this.corsi.show();
 			this.appelli.reset();
 			this.iscritti.reset();
+		};
+		
+		this.showCorsiSection = function() {
+			// Hide all sections except corsi
+			document.getElementById("corsiSection").style.display = "block";
+			document.getElementById("corsiTable").style.display = "table";
+			document.getElementById("appelliSection").style.display = "none";
+			document.getElementById("iscrittiSection").style.display = "none";
+			document.getElementById("modificaStudenteSection").style.display = "none";
+			document.getElementById("verbaleSection").style.display = "none";
+			document.getElementById("elencoVerbaliSection").style.display = "none";
+			
+			// Hide home button when on main page
+			document.getElementById("homeButton").style.display = "none";
+			
+			// Refresh the course list
+			this.corsi.show();
 		};
 	}
 

@@ -140,7 +140,7 @@
 
 			document.getElementById("corsiSection").style.display = "none";
 			document.getElementById("appelliSection").style.display = "none";
-			makeCall("GET", contextPath + "/esito?appelloId=" + appelloId + "&corsoId=" + corsoId, null, (req) => {
+			makeCall("GET", contextPath + "/esito?appelloId=" + appelloId, null, (req) => {
 				if (req.readyState === XMLHttpRequest.DONE) {
 					if (req.status === 200) {
 						const esito = JSON.parse(req.responseText);
@@ -171,7 +171,7 @@
 						};
 
 						addRow("Nome corso:", esito.nome_corso);
-						addRow("Data appello:", esito.data ? new Date(esito.data).toLocaleDateString("it-IT") : "-");
+						addRow("Data appello:", esito.data || "-");
 						addRow("Matricola:", esito.matricola);
 						addRow("Cognome:", esito.cognome);
 						addRow("Nome:", esito.nome);
@@ -182,16 +182,22 @@
 
 						this.esitoContent.appendChild(card);
 
-						if (esito.voto != null && esito.statodivalutazione != "RIFIUTATO") {
+						// Mostra pulsante rifiuto solo se il voto è PUBBLICATO e non è già RIFIUTATO
+						if (esito.voto != null && esito.statodivalutazione === "PUBBLICATO") {
 							this.rifiutaButton.style.display = "inline-block";
 							this.rifiutaButton.disabled = false;
 							this.trashcan.style.display = "inline-block";
-						} else {
+						} else if (esito.statodivalutazione === "RIFIUTATO") {
 							this.rifiutaButton.style.display = "none";
 							this.trashcan.style.display = "none";
 							const msg = document.createElement("p");
+							msg.style.color = "#e74c3c";
+							msg.style.fontWeight = "bold";
 							msg.textContent = "Il voto è stato rifiutato";
 							this.esitoContent.appendChild(msg);
+						} else {
+							this.rifiutaButton.style.display = "none";
+							this.trashcan.style.display = "none";
 						}
 
 						this.esitoSection.style.display = "block";
@@ -239,15 +245,15 @@
 
 			this.rifiutaButton.disabled = true; // previeni doppio click
 
-			makeCall("POST", contextPath + "/esito?appelloId=" + this.currentAppelloId + "&corsoId=" + this.currentCorsoId, null, (req) => {
+			makeCall("POST", contextPath + "/esito?appelloId=" + this.currentAppelloId, null, (req) => {
 				if (req.readyState === XMLHttpRequest.DONE) {
 					if (req.status === 200) {
+						// Ricarica i dati dell'esito per mostrare lo stato aggiornato
 						pageOrchestrator.esito.show(this.currentAppelloId, this.currentCorsoId);
-						// Nascondi bottone e mostra messaggio
-						this.rifiutaButton.style.display = "none";
-						const msg = document.createElement("p");
-						msg.textContent = "Il voto è stato rifiutato";
-						this.esitoContent.appendChild(msg);
+						document.getElementById("message").textContent = "Voto rifiutato con successo!";
+						setTimeout(() => {
+							document.getElementById("message").textContent = "";
+						}, 3000);
 					} else {
 						document.getElementById("message").textContent = "Errore nel rifiuto del voto: " + req.responseText;
 						this.rifiutaButton.disabled = false;

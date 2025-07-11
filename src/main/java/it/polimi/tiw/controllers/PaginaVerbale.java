@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -77,6 +78,7 @@ public class PaginaVerbale extends HttpServlet {
         ValutazioneDAO valutazioneDAO = new ValutazioneDAO(connection, id_appello);
         List<Integer> studentiDaAggiornare;
         Map<String, Object> result = new HashMap<>();
+        
         try {
             studentiDaAggiornare = valutazioneDAO.getIDStudentiPubbORif();
         } catch (SQLException e) {
@@ -129,8 +131,8 @@ public class PaginaVerbale extends HttpServlet {
             verbaleMap.put("id_verbale", verbale.getIDVverbale());
             verbaleMap.put("codice", verbale.getCodice());
             verbaleMap.put("id_appello", verbale.getIDAppello());
-            verbaleMap.put("dataAppello", verbale.getDataAppello() != null ? verbale.getDataAppello().toString() : null);
-            verbaleMap.put("dataVerbale", verbale.getDataVerbale() != null ? verbale.getDataVerbale().toString() : null);
+            verbaleMap.put("dataAppello", verbale.getDataAppello() != null ? verbale.getDataAppello().toString().split(" ")[0] : null);
+            verbaleMap.put("dataVerbale", verbale.getDataVerbale() != null ? verbale.getDataVerbale().toString().split(" ")[0] : null);
             verbaleMap.put("ora", verbale.getOra() != null ? verbale.getOra().toString() : null);
             result.put("verbale", verbaleMap);
         } catch (SQLException e) {

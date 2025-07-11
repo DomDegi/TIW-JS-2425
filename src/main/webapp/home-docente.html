@@ -131,38 +131,53 @@
 	</section>
 
 	<section id="verbaleSection" style="display: none;">
-		<h1>Dettagli Verbale</h1>
+		<div class="verbale-container">
+			<h1>📋 Dettagli Verbale</h1>
+			
+			<div class="verbale-info">
+				<div class="info-card">
+					<h3>📄 Informazioni Verbale</h3>
+					<div class="info-grid">
+						<div class="info-item">
+							<label>Codice verbale:</label>
+							<span id="verbaleId" class="value">-</span>
+						</div>
+						<div class="info-item">
+							<label>Data verbale:</label>
+							<span id="verbaleData" class="value">-</span>
+						</div>
+						<div class="info-item">
+							<label>Ora verbale:</label>
+							<span id="verbaleOra" class="value">-</span>
+						</div>
+						<div class="info-item">
+							<label>Data appello:</label>
+							<span id="verbaleDataApp" class="value">-</span>
+						</div>
+					</div>
+				</div>
+			</div>
 
-		<p>
-			<strong>Codice verbale:</strong> <span id="verbaleId">-</span>
-		</p>
-
-		<p>
-			<strong>Data verbale:</strong> <span id="verbaleData">-</span>
-		</p>
-
-		<p>
-			<strong>Ora verbale:</strong> <span id="verbaleOra">-</span>
-		</p>
-
-		<p>
-			<strong>Data appello:</strong> <span id="verbaleDataApp">-</span>
-		</p>
-
-		<table border="1">
-			<thead>
-				<tr>
-					<th>Matricola</th>
-					<th>Cognome</th>
-					<th>Nome</th>
-					<th>Voto</th>
-					<th>Stato Valutazione</th>
-				</tr>
-			</thead>
-			<tbody id="infoverbalizzatiBody">
-				<!-- Righe create dinamicamente -->
-			</tbody>
-		</table>
+			<div class="studenti-section">
+				<h3>👥 Studenti Verbalizzati</h3>
+				<div class="table-container">
+					<table class="verbale-table">
+						<thead>
+							<tr>
+								<th>Matricola</th>
+								<th>Cognome</th>
+								<th>Nome</th>
+								<th>Voto</th>
+								<th>Stato Valutazione</th>
+							</tr>
+						</thead>
+						<tbody id="infoverbalizzatiBody">
+							<!-- Righe create dinamicamente -->
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
 	</section>
 
 	<!-- ELENCO VERBALI -->

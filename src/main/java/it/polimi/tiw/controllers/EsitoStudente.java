@@ -54,8 +54,31 @@ public class EsitoStudente extends HttpServlet {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Impossibile recuperare l'esito dell'appello");
             return;
         }
+        // Converti il bean in una mappa per gestire le date come stringhe
+        java.util.Map<String, Object> result = new java.util.HashMap<>();
+        result.put("matricola", infoAppello.getMatricola());
+        result.put("id_studente", infoAppello.getIDStudente());
+        result.put("id_appello", infoAppello.getIDAppello());
+        result.put("id_corso", infoAppello.getIDCorso());
+        result.put("nome", infoAppello.getNome());
+        result.put("cognome", infoAppello.getCognome());
+        result.put("email", infoAppello.getEmail());
+        result.put("corsolaurea", infoAppello.getCorsolaurea());
+        result.put("nome_corso", infoAppello.getNomeCorso());
+        result.put("voto", infoAppello.getVoto());
+        String dataString = null;
+        if (infoAppello.getData() != null) {
+            try {
+                dataString = infoAppello.getData().toString().split(" ")[0];
+            } catch (Exception e) {
+                dataString = infoAppello.getData().toString();
+            }
+        }
+        result.put("data", dataString);
+        result.put("statodivalutazione", infoAppello.getStatoDiValutazione() != null ? infoAppello.getStatoDiValutazione().toString() : null);
+        
         Gson gson = new GsonBuilder().create();
-        String json = gson.toJson(infoAppello);
+        String json = gson.toJson(result);
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         response.setStatus(HttpServletResponse.SC_OK);

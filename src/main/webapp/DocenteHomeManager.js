@@ -8,13 +8,29 @@
 			pageOrchestrator.start();
 			pageOrchestrator.refresh();
 		}
-		document.getElementById("username").textContent = sessionStorage.getItem("email");
-		document.getElementById("role").textContent = sessionStorage.getItem("role");
+		const nome = sessionStorage.getItem("nome") || "";
+		const cognome = sessionStorage.getItem("cognome") || "";
+		const nomeCompleto = nome && cognome ? `${nome} ${cognome}` : sessionStorage.getItem("email");
+		document.getElementById("username").textContent = nomeCompleto;
+		
+		// Capitalizza il ruolo per la visualizzazione
+		const role = sessionStorage.getItem("role") || "";
+		const roleCapitalized = role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
+		const roleElement = document.getElementById("role");
+		if (roleElement) {
+			roleElement.textContent = roleCapitalized;
+		}
 		document.getElementById("logoutBtn").addEventListener("click", () => {
 			sessionStorage.clear();
 			window.location.href = "index.html";
 		});
 	}, false);
+
+	// Funzione per formattare gli stati di valutazione
+	function formatStatoValutazione(stato) {
+		if (!stato) return '-';
+		return stato.replace('_', ' ');
+	}
 
 	function Corsi(_corsiTable, _corsiBody) {
 		this.corsiTable = _corsiTable;
@@ -134,7 +150,11 @@
 				let row = document.createElement("tr");
 				["matricola", "cognome", "nome", "email", "corso_laurea", "voto", "statoDiValutazione"].forEach(field => {
 					let cell = document.createElement("td");
-					cell.textContent = studente[field] || '-';
+					if (field === "statoDiValutazione") {
+						cell.textContent = formatStatoValutazione(studente[field]);
+					} else {
+						cell.textContent = studente[field] || '-';
+					}
 					row.appendChild(cell);
 				});
 				let azioniCell = document.createElement("td");
@@ -184,7 +204,7 @@
 			const studentiVerbalizzabili = (stati["PUBBLICATO"] || 0) + (stati["RIFIUTATO"] || 0);
 			verbalizzaButton.disabled = studentiVerbalizzabili === 0;
 			
-			// Inserimento multiplo: abilita se ci sono studenti NON_INSERITO
+			// Inserimento multiplo: abilita se ci sono studenti NON INSERITO
 			inserimentoMultiploBtn.disabled = !stati["NON_INSERITO"] || stati["NON_INSERITO"] === 0;
 			
 			// Aggiungi tooltip o messaggio informativo per il pulsante verbalizza
@@ -239,7 +259,7 @@
 				const row = document.createElement("tr");
 				const cell = document.createElement("td");
 				cell.setAttribute("colspan", "6");
-				cell.textContent = "Nessuno studente nello stato NON_INSERITO";
+				cell.textContent = "Nessuno studente nello stato NON INSERITO";
 				row.appendChild(cell);
 				tbody.appendChild(row);
 			} else {
@@ -284,7 +304,7 @@
 					document.getElementById("modEmail").textContent = studente.email || '-';
 					document.getElementById("modLaurea").textContent = studente.corso_laurea || '-';
 					document.getElementById("modVoto").value = studente.voto || "";
-					document.getElementById("modStato").textContent = studente.statoDiValutazione || '-';
+					document.getElementById("modStato").textContent = formatStatoValutazione(studente.statoDiValutazione);
 					document.getElementById("modificaStudenteForm").dataset.studenteId = studente.id_studente;
 					document.getElementById("modificaStudenteForm").dataset.appelloId = studente.id_appello;
 				} else {
@@ -315,7 +335,11 @@
 			let row = document.createElement("tr");
 			["matricola", "cognome", "nome", "voto", "statoDiValutazione"].forEach(field => {
 				let cell = document.createElement("td");
-				cell.textContent = item[field] || '-';
+				if (field === "statoDiValutazione") {
+					cell.textContent = formatStatoValutazione(item[field]);
+				} else {
+					cell.textContent = item[field] || '-';
+				}
 				row.appendChild(cell);
 			});
 			tbody.appendChild(row);

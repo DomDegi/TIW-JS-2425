@@ -8,6 +8,8 @@
                         var userData = JSON.parse(req.responseText);
                         sessionStorage.setItem('email', userData.email || userData.mail || userData.username);
                         sessionStorage.setItem('role', userData.role || userData.tipo || '');
+                        sessionStorage.setItem('nome', userData.nome || '');
+                        sessionStorage.setItem('cognome', userData.cognome || '');
                         // Redirect in base al ruolo
                         if (userData.role === "studente" || userData.tipo === "studente") {
                             window.location.href = "home-studente.html";

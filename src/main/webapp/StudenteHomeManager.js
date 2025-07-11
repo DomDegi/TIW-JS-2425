@@ -9,12 +9,29 @@
 			pageOrchestrator.start();
 			pageOrchestrator.refresh();
 		}
-		document.getElementById("username").textContent = sessionStorage.getItem("email");
+		const nome = sessionStorage.getItem("nome") || "";
+		const cognome = sessionStorage.getItem("cognome") || "";
+		const nomeCompleto = nome && cognome ? `${nome} ${cognome}` : sessionStorage.getItem("email");
+		document.getElementById("username").textContent = nomeCompleto;
+		
+		// Capitalizza il ruolo per la visualizzazione
+		const role = sessionStorage.getItem("role") || "";
+		const roleCapitalized = role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
+		const roleElement = document.getElementById("role");
+		if (roleElement) {
+			roleElement.textContent = roleCapitalized;
+		}
 		document.getElementById("logoutBtn").addEventListener("click", () => {
 			sessionStorage.clear();
 			window.location.href = "index.html";
 		});
 	}, false);
+
+	// Funzione per formattare gli stati di valutazione
+	function formatStatoValutazione(stato) {
+		if (!stato) return '-';
+		return stato.replace('_', ' ');
+	}
 
 	function Corsi(_corsiTable, _corsiBody) {
 		this.corsiTable = _corsiTable;
@@ -177,7 +194,7 @@
 						addRow("Email:", esito.email);
 						addRow("Corso di laurea:", esito.corsolaurea);
 						addRow("Voto:", esito.voto != null ? esito.voto : "Non definito");
-						addRow("Stato:", esito.statodivalutazione);
+						addRow("Stato:", formatStatoValutazione(esito.statodivalutazione));
 
 						this.esitoContent.appendChild(card);
 

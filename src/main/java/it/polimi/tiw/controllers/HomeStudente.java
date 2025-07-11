@@ -37,23 +37,27 @@ public class HomeStudente extends HttpServlet {
         HttpSession session = request.getSession(false);
         UtenteBean utente = (session != null) ? (UtenteBean) session.getAttribute("utente") : null;
         if (session == null || utente == null) {
-            response.sendRedirect("login.html");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"Not authenticated\"}");
             return;
         }
 
         if (!(utente instanceof it.polimi.tiw.beans.StudenteBean)) {
-            response.sendRedirect("login.html");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"Not authenticated\"}");
             return;
         }
 
-        String corsoIdParam = request.getParameter("corsoId");
+        String idCorsoParam = request.getParameter("id_corso");
         Gson gson = new GsonBuilder().create();
         response.setCharacterEncoding("UTF-8");
         response.setContentType("application/json");
         try {
-            if (corsoIdParam != null) {
-                int corsoId = Integer.parseInt(corsoIdParam);
-                CorsoDAO corsoDAO = new CorsoDAO(connection, corsoId);
+            if (idCorsoParam != null) {
+                int id_corso = Integer.parseInt(idCorsoParam);
+                CorsoDAO corsoDAO = new CorsoDAO(connection, id_corso);
                 List<AppelloBean> appelli = corsoDAO.cercaAppelli();
                 String json = gson.toJson(appelli);
                 response.setStatus(HttpServletResponse.SC_OK);
@@ -68,7 +72,7 @@ public class HomeStudente extends HttpServlet {
                 return;
             }
         } catch (NumberFormatException e) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid corsoId");
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid id_corso");
         } catch (SQLException e) {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
         }

@@ -23,16 +23,6 @@
 		<param-value>com.mysql.cj.jdbc.Driver</param-value>
 	</context-param>
 
-    <!-- Filter per autenticazione -->
-    <filter>
-        <filter-name>Checker</filter-name>
-        <filter-class>it.polimi.tiw.filters.Checker</filter-class>
-    </filter>
-    <filter-mapping>
-        <filter-name>Checker</filter-name>
-        <url-pattern>/*</url-pattern>
-    </filter-mapping>
-
     <!-- Filter per autorizzazione studente -->
     <filter>
         <filter-name>StudenteChecker</filter-name>
@@ -58,7 +48,7 @@
     </filter-mapping>
     <filter-mapping>
         <filter-name>DocenteChecker</filter-name>
-        <url-pattern>/Iscritti</url-pattern>
+        <url-pattern>/iscritti-appello</url-pattern>
     </filter-mapping>
     <filter-mapping>
         <filter-name>DocenteChecker</filter-name>

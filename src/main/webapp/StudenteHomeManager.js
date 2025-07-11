@@ -1,9 +1,10 @@
 (function() {
 	let pageOrchestrator = new PageOrchestrator();
+	let contextPath = '/' + window.location.pathname.split('/')[1];
 
 	window.addEventListener("load", () => {
 		if (sessionStorage.getItem("email") == null || !(sessionStorage.getItem("role") === undefined || sessionStorage.getItem("role") === null || sessionStorage.getItem("role") === "studente")) {
-			window.location.href = "../login.html";
+			window.location.href = "index.html";
 		} else {
 			//display initial content
 			pageOrchestrator.start();
@@ -12,7 +13,7 @@
 		document.getElementById("username").textContent = sessionStorage.getItem("email");
 		document.getElementById("logoutBtn").addEventListener("click", () => {
 			sessionStorage.clear();
-			window.location.href = "../login.html";
+			window.location.href = "index.html";
 		});
 	}, false);
 
@@ -26,9 +27,13 @@
 		};
 		this.show = function() {
 			var self = this;
-			makeCall("GET", "../home-studente", null,
+			makeCall("GET", contextPath + "/home-studente", null,
 				function(req) {
 					if (req.readyState == XMLHttpRequest.DONE) {
+						if (req.status === 401) {
+							window.location.href = "index.html";
+							return;
+						}
 						var message = req.responseText;
 						if (req.status == 200) {
 							var corsiListToShow = JSON.parse(message);
@@ -53,7 +58,7 @@
 			corsiList.forEach(corso => {
 				let row = document.createElement("tr");
 				let cell = document.createElement("td");
-				cell.textContent = corso.nome_corso;
+				cell.textContent = corso.nome; // Corretto: usa "nome" come nel JSON
 				cell.style.textDecoration = "underline";
 				cell.style.color = "#007bff";
 				row.appendChild(cell);
@@ -79,8 +84,12 @@
 		this.show = function(corsoId) {
 			this.reset();
 			let self = this;
-			makeCall("GET", "../home-studente?id_corso=" + corsoId, null, (req) => {
+			makeCall("GET", contextPath + "/home-studente?id_corso=" + corsoId, null, (req) => {
 				if (req.readyState === XMLHttpRequest.DONE) {
+					if (req.status === 401) {
+						window.location.href = "index.html";
+						return;
+					}
 					if (req.status === 200) {
 						let appelli = JSON.parse(req.responseText);
 						appelli.forEach(appello => {
@@ -131,7 +140,7 @@
 
 			document.getElementById("corsiSection").style.display = "none";
 			document.getElementById("appelliSection").style.display = "none";
-			makeCall("GET", "../esito?appelloId=" + appelloId + "&corsoId=" + corsoId, null, (req) => {
+			makeCall("GET", contextPath + "/esito?appelloId=" + appelloId + "&corsoId=" + corsoId, null, (req) => {
 				if (req.readyState === XMLHttpRequest.DONE) {
 					if (req.status === 200) {
 						const esito = JSON.parse(req.responseText);
@@ -258,7 +267,7 @@
 
 			this.rifiutaButton.disabled = true; // previeni doppio click
 
-			makeCall("POST", "../esito?appelloId=" + this.currentAppelloId + "&corsoId=" + this.currentCorsoId, null, (req) => {
+			makeCall("POST", contextPath + "/esito?appelloId=" + this.currentAppelloId + "&corsoId=" + this.currentCorsoId, null, (req) => {
 				if (req.readyState === XMLHttpRequest.DONE) {
 					if (req.status === 200) {
 						pageOrchestrator.esito.show(this.currentAppelloId, this.currentCorsoId);

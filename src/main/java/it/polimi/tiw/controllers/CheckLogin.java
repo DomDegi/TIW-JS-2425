@@ -5,7 +5,10 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import it.polimi.tiw.beans.UtenteBean;
+import it.polimi.tiw.beans.DocenteBean;
+import it.polimi.tiw.beans.StudenteBean;
 import it.polimi.tiw.dao.UtenteDAO;
 import it.polimi.tiw.utilities.DBConnection;
 import jakarta.servlet.ServletContext;
@@ -58,8 +61,13 @@ public class CheckLogin extends HttpServlet {
             response.setCharacterEncoding("UTF-8");
             response.setContentType("application/json");
             Gson gson = new Gson();
-            String json = gson.toJson(utente);
-            response.getWriter().println(json);
+            JsonObject json = gson.toJsonTree(utente).getAsJsonObject();
+            if (utente instanceof StudenteBean) {
+                json.addProperty("role", "studente");
+            } else if (utente instanceof DocenteBean) {
+                json.addProperty("role", "docente");
+            }
+            response.getWriter().println(json.toString());
         }
     }
 

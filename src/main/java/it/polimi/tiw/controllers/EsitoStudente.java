@@ -33,7 +33,9 @@ public class EsitoStudente extends HttpServlet {
         HttpSession session = request.getSession(false);
         UtenteBean utente = (session != null) ? (UtenteBean) session.getAttribute("utente") : null;
         if (session == null || utente == null) {
-            response.sendRedirect("../login.html");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"Not authenticated\"}");
             return;
         }
         String appelloIdParam = request.getParameter("appelloId");
@@ -64,7 +66,9 @@ public class EsitoStudente extends HttpServlet {
         HttpSession session = request.getSession(false);
         UtenteBean utente = (session != null) ? (UtenteBean) session.getAttribute("utente") : null;
         if (session == null || utente == null) {
-            response.sendRedirect("../login.html");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"Not authenticated\"}");
             return;
         }
         String appelloIdParam = request.getParameter("appelloId");

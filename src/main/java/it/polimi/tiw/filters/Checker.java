@@ -36,53 +36,24 @@ public class Checker implements Filter {
     /**
      * @see Filter#doFilter(ServletRequest, ServletResponse, FilterChain)
      */
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-            throws IOException, ServletException {
-
-        System.out.println("Authentication filter executing...");
-
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
         HttpSession session = req.getSession(false);
-        
-        // Percorsi pubblici che non richiedono autenticazione
-        String loginPath = req.getContextPath() + "/index.html";
-        String loginServletPath = req.getContextPath() + "/login";
-        String cssPath = req.getContextPath() + "/styles/";
-        String jsPath = req.getContextPath() + "/js/";
-        String imagesPath = req.getContextPath() + "/images/";
-        
-        String requestURI = req.getRequestURI();
-        
-        // Controlla se la richiesta è per una risorsa pubblica
-        boolean isPublicResource = requestURI.equals(loginPath) || 
-                                   requestURI.equals(loginServletPath) ||
-                                   requestURI.startsWith(cssPath) ||
-                                   requestURI.startsWith(jsPath) ||
-                                   requestURI.startsWith(imagesPath) ||
-                                   requestURI.endsWith(".css") ||
-                                   requestURI.endsWith(".js") ||
-                                   requestURI.endsWith(".png") ||
-                                   requestURI.endsWith(".jpg") ||
-                                   requestURI.endsWith(".jpeg") ||
-                                   requestURI.endsWith(".gif") ||
-                                   requestURI.endsWith(".ico");
-        
-        // Se è una risorsa pubblica, lascia passare
-        if (isPublicResource) {
-            chain.doFilter(request, response);
-            return;
-        }
-        
-        // Controlla se l'utente è autenticato
+
+        boolean isAjax = "XMLHttpRequest".equals(req.getHeader("X-Requested-With")) ||
+                         (req.getHeader("Accept") != null && req.getHeader("Accept").contains("application/json"));
+
         if (session == null || session.getAttribute("utente") == null) {
-            System.out.println("Utente non autenticato, verrà reinderizzato al login");
-            res.sendRedirect(loginPath);
+            if (isAjax) {
+                res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                res.setContentType("application/json");
+                res.getWriter().write("{\"error\": \"Utente non autenticato\"}");
+            } else {
+                res.sendRedirect(req.getContextPath() + "/index.html");
+            }
             return;
         }
-        
-        // Utente autenticato, continua con la richiesta
-        System.out.println("Utente autenticato: " + session.getAttribute("utente"));
         chain.doFilter(request, response);
     }
 

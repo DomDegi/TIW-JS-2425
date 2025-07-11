@@ -45,16 +45,30 @@ public class StudenteChecker implements Filter {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
         HttpSession session = req.getSession(false);
-        
+
+        boolean isAjax = "XMLHttpRequest".equals(req.getHeader("X-Requested-With")) ||
+                         (req.getHeader("Accept") != null && req.getHeader("Accept").contains("application/json"));
+
         if (session == null) {
-            res.sendRedirect(req.getContextPath() + "/index.html");
+            if (isAjax) {
+                res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                res.setContentType("application/json");
+                res.getWriter().write("{\"error\": \"Utente non autenticato\"}");
+            } else {
+                res.sendRedirect(req.getContextPath() + "/index.html");
+            }
             return;
         }
 
         UtenteBean utente = (UtenteBean) session.getAttribute("utente");
         if (utente == null || !(utente instanceof StudenteBean)) {
-            System.out.println("L'utente non è uno studente, accesso negato");
-            res.sendRedirect(req.getContextPath() + "/index.html");
+            if (isAjax) {
+                res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                res.setContentType("application/json");
+                res.getWriter().write("{\"error\": \"Utente non autorizzato\"}");
+            } else {
+                res.sendRedirect(req.getContextPath() + "/index.html");
+            }
             return;
         }
 

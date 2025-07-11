@@ -1,1 +1,190 @@
- 
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>Docente Dashboard</title>
+<link rel="stylesheet" href="style.css">
+<script src="utils.js" defer></script>
+<script src="DocenteHomeManager.js" defer></script>
+</head>
+<body>
+	<button id="logoutBtn"
+		style="background-color: red; position: fixed; top: 20px; right: 20px;">Logout</button>
+	<div id="error_message"
+		style="color: red; font-weight: bold; padding: 10px; text-align: center;"></div>
+
+	<!-- CORSI -->
+	<section id="corsiSection">
+		<h1>Docente Home Page</h1>
+		<p>
+			Benvenuto, <strong id="role">Ruolo</strong> <strong id="username">Nome
+				Docente</strong>!
+		</p>
+
+		<button id="verbaliButton">VERBALI</button>
+
+		<h2>Lista Corsi</h2>
+		<table id="corsiTable">
+			<tbody id="corsiBody" >
+
+			</tbody>
+		</table>
+
+	</section>
+
+	<section id="appelliSection" style="display: none;">
+		<!-- APPELLI -->
+		<h2>Appelli del Corso</h2>
+		<table id="appelliTable">
+			<thead>
+				<tr>
+					<th>Data Appello</th>
+				</tr>
+			</thead>
+			<tbody id="appelliBody">
+				<!-- Populated by JS -->
+			</tbody>
+		</table>
+	</section>
+
+	<!-- ELENCO ISCRITTI -->
+	<section id="iscrittiSection" style="display: none;">
+		<h2>Elenco Iscritti</h2>
+		<table>
+			<thead>
+				<tr>
+					<th><a href="#" data-order="matricola">Matricola</a></th>
+					<th><a href="#" data-order="cognome">Cognome</a></th>
+					<th><a href="#" data-order="nome">Nome</a></th>
+					<th><a href="#" data-order="email">Email</a></th>
+					<th><a href="#" data-order="corsolaurea">Laurea</a></th>
+					<th><a href="#" data-order="voto">Voto</a></th>
+					<th><a href="#" data-order="statodivalutazione">Stato
+						Valutazione</a></th>
+					<th>Azioni</th>
+				</tr>
+			</thead>
+			<tbody id="iscrittiBody">
+				<!-- Populated by JS -->
+			</tbody>
+		</table>
+		<button id="pubblicaButton">PUBBLICA</button>
+		<button id="verbalizzaButton">VERBALIZZA</button>
+		<button id="inserimentoMultiploBtn">INSERIMENTO MULTIPLO</button>
+
+		<div id="inserimentoMultiploModal"
+			style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); align-items: center; justify-content: center; z-index: 1000;">
+			<div
+				style="background: white; padding: 20px; border-radius: 8px; text-align: center; min-width: 80%;">
+				<h2>Inserimento Multiplo Voti</h2>
+				<form id="inserimentoMultiploForm">
+					<table style="width: 100%; border-collapse: collapse;">
+						<thead>
+							<tr>
+								<th>Matricola</th>
+								<th>Nome</th>
+								<th>Cognome</th>
+								<th>Email</th>
+								<th>Corso di laurea</th>
+								<th>Voto</th>
+							</tr>
+						</thead>
+						<tbody id="inserimentoMultiploBody">
+							<!-- Popolato da JS -->
+						</tbody>
+					</table>
+					<br>
+					<button type="submit" id="inviaButton">INVIA</button>
+					<button type="button" id="closeInserimentoModal">CHIUDI</button>
+				</form>
+			</div>
+		</div>
+		  
+	</section>
+	<section id="modificaStudenteSection" style="display: none;">
+		<h2>Modifica Studente</h2>
+		<form id="modificaStudenteForm">
+			<p>
+				<strong>Matricola:</strong> <span id="modMatricola"></span>
+			</p>
+			<p>
+				<strong>Cognome:</strong> <span id="modCognome"></span>
+			</p>
+			<p>
+				<strong>Nome:</strong> <span id="modNome"></span>
+			</p>
+			<p>
+				<strong>Email:</strong> <span id="modEmail"></span>
+			</p>
+			<p>
+				<strong>Laurea:</strong> <span id="modLaurea"></span>
+			</p>
+			<p>
+				<strong>Voto:</strong> <input type="text" id="modVoto" name="voto">
+			</p>
+			<p>
+				<strong>Stato Valutazione:</strong> <span id="modStato"></span>
+			</p>
+			<input id="salvaModificheButton" type="submit"
+				value="SALVA MODIFICHE">
+		</form>
+	</section>
+
+	<section id="verbaleSection" style="display: none;">
+		<h1>Dettagli Verbale</h1>
+
+		<p>
+			<strong>Codice verbale:</strong> <span id="verbaleId">-</span>
+		</p>
+
+		<p>
+			<strong>Data verbale:</strong> <span id="verbaleData">-</span>
+		</p>
+
+		<p>
+			<strong>Ora verbale:</strong> <span id="verbaleOra">-</span>
+		</p>
+
+		<p>
+			<strong>Data appello:</strong> <span id="verbaleDataApp">-</span>
+		</p>
+
+		<table border="1">
+			<thead>
+				<tr>
+					<th>Matricola</th>
+					<th>Cognome</th>
+					<th>Nome</th>
+					<th>Voto</th>
+					<th>Stato Valutazione</th>
+				</tr>
+			</thead>
+			<tbody id="infoverbalizzatiBody">
+				<!-- Righe create dinamicamente -->
+			</tbody>
+		</table>
+	</section>
+
+	<!-- ELENCO VERBALI -->
+	<section id="elencoVerbaliSection" style="display: none;">
+		<h2>Elenco Verbali</h2>
+		<table border="1">
+			<thead>
+				<tr>
+					<th>Nome Corso</th>
+					<th>Data Appello</th>
+					<th>Data Verbale</th>
+				</tr>
+			</thead>
+			<tbody id="elencoVerbaliBody">
+				<!-- Righe generate da JS -->
+			</tbody>
+		</table>
+	</section>
+
+
+	<div id="message"></div>
+
+
+</body>
+</html> 

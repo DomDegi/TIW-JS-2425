@@ -1,9 +1,10 @@
 (function() {
 	let pageOrchestrator = new PageOrchestrator();
+	let contextPath = '/' + window.location.pathname.split('/')[1];
 
 	window.addEventListener("load", () => {
 		if (sessionStorage.getItem("email") == null || !(sessionStorage.getItem("role") === undefined || sessionStorage.getItem("role") === null || sessionStorage.getItem("role") === "docente")) {
-			window.location.href = "../login.html";
+			window.location.href = "index.html";
 		} else {
 			pageOrchestrator.start();
 			pageOrchestrator.refresh();
@@ -11,7 +12,7 @@
 		document.getElementById("username").textContent = sessionStorage.getItem("email");
 		document.getElementById("logoutBtn").addEventListener("click", () => {
 			sessionStorage.clear();
-			window.location.href = "../login.html";
+			window.location.href = "index.html";
 		});
 	}, false);
 
@@ -25,9 +26,13 @@
 		};
 		this.show = function() {
 			var self = this;
-			makeCall("GET", "../home-docente", null,
+			makeCall("GET", contextPath + "/home-docente", null,
 				function(req) {
 					if (req.readyState == XMLHttpRequest.DONE) {
+						if (req.status === 401) {
+							window.location.href = "index.html";
+							return;
+						}
 						var message = req.responseText;
 						if (req.status == 200) {
 							var corsiListToShow = JSON.parse(message);
@@ -76,8 +81,12 @@
 		};
 		this.show = function(corsoId) {
 			this.reset();
-			makeCall("GET", "../home-docente?id_corso=" + corsoId, null, (req) => {
+			makeCall("GET", contextPath + "/home-docente?id_corso=" + corsoId, null, (req) => {
 				if (req.readyState === XMLHttpRequest.DONE) {
+					if (req.status === 401) {
+						window.location.href = "index.html";
+						return;
+					}
 					if (req.status === 200) {
 						let appelli = JSON.parse(req.responseText);
 						appelli.forEach(appello => {

@@ -1,22 +1,20 @@
 package it.polimi.tiw.controllers;
 
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.WebContext;
-import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.WebApplicationTemplateResolver;
-import org.thymeleaf.web.IWebExchange;
-import org.thymeleaf.web.servlet.JakartaServletWebApplication;
-
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import it.polimi.tiw.beans.AppelloBean;
 import it.polimi.tiw.beans.CorsoBean;
@@ -29,39 +27,28 @@ import it.polimi.tiw.utilities.DBConnection;
 public class HomeDocente extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private Connection connection = null;
-    private TemplateEngine templateEngine;
 
     public void init() throws ServletException {
         this.connection = DBConnection.getConnection(getServletContext());
         ServletContext servletContext = getServletContext();
-        JakartaServletWebApplication webApplication = JakartaServletWebApplication.buildApplication(servletContext);
-        WebApplicationTemplateResolver templateResolver = new WebApplicationTemplateResolver(webApplication);
-        templateResolver.setTemplateMode(TemplateMode.HTML);
-        templateResolver.setSuffix(".html");
-        this.templateEngine = new TemplateEngine();
-        this.templateEngine.setTemplateResolver(templateResolver);
     }
 
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        DocenteBean docente = (DocenteBean) request.getSession().getAttribute("utente");
-        if (docente == null) {
-            response.sendRedirect(request.getContextPath() + "/index.html");
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        DocenteBean docente = (session != null) ? (DocenteBean) session.getAttribute("utente") : null;
+        if (session == null || docente == null) {
+            response.sendRedirect("../login.html");
             return;
         }
-        DocenteDAO docenteDAO = new DocenteDAO(connection, docente.getIDUtente());
 
-        JakartaServletWebApplication application = JakartaServletWebApplication.buildApplication(getServletContext());
-        IWebExchange webExchange = application.buildExchange(request, response);
-        WebContext ctx = new WebContext(webExchange, request.getLocale());
-        ctx.setVariable("email", docente.getEmail());
+        String idCorsoParam = request.getParameter("id_corso");
+        Gson gson = new GsonBuilder().create();
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("application/json");
 
         try {
-            List<CorsoBean> corsi = docenteDAO.cercaCorsi();
-            ctx.setVariable("corsi", corsi);
-            String id_corsoParam = request.getParameter("id_corso");
-            if (id_corsoParam != null) {
-                int id_corso = Integer.parseInt(id_corsoParam);
+            if (idCorsoParam != null) {
+                int id_corso = Integer.parseInt(idCorsoParam);
                 CorsoDAO corsoDAO = new CorsoDAO(connection, id_corso);
                 int docenteCorretto = corsoDAO.cercaIdDocentePerCorso();
                 if (docenteCorretto != docente.getIDUtente()) {
@@ -69,20 +56,26 @@ public class HomeDocente extends HttpServlet {
                     return;
                 }
                 List<AppelloBean> appelli = corsoDAO.cercaAppelli();
-                ctx.setVariable("appelli", appelli);
+                String json = gson.toJson(appelli);
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.getWriter().write(json);
+                return;
+            } else {
+                DocenteDAO docenteDAO = new DocenteDAO(connection, docente.getIDUtente());
+                List<CorsoBean> corsi = docenteDAO.cercaCorsi();
+                String json = gson.toJson(corsi);
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.getWriter().write(json);
+                return;
             }
-        } catch (SQLException e) {
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Impossibile recuperare i corsi");
-            return;
         } catch (NumberFormatException e) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Il parametro corsoId deve essere un intero valido");
-            return;
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid id_corso");
+        } catch (SQLException e) {
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
         }
-        templateEngine.process("/WEB-INF/home-docente.html", ctx, response.getWriter());
     }
 
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         doGet(request, response);
     }
 } 

@@ -146,70 +146,41 @@
 						const esito = JSON.parse(req.responseText);
 						this.esitoContent.innerHTML = "";
 
-						const pNomeCorso = document.createElement("p");
-						const strongNomeCorso = document.createElement("strong");
-						strongNomeCorso.textContent = "Nome corso: ";
-						pNomeCorso.appendChild(strongNomeCorso);
-						pNomeCorso.appendChild(document.createTextNode(esito.nome_corso));
+						// Card layout per i dati dell'esito
+						const card = document.createElement("div");
+						card.style.background = "#f8fafc";
+						card.style.borderRadius = "12px";
+						card.style.boxShadow = "0 2px 8px rgba(44,62,80,0.07)";
+						card.style.padding = "24px 18px";
+						card.style.marginBottom = "18px";
 
-						const pData = document.createElement("p");
-						const strongData = document.createElement("strong");
-						strongData.textContent = "Data appello: ";
-						pData.appendChild(strongData);
-						pData.appendChild(document.createTextNode(esito.data));
+						const addRow = (label, value) => {
+							const row = document.createElement("div");
+							row.style.display = "flex";
+							row.style.justifyContent = "space-between";
+							row.style.marginBottom = "10px";
+							const l = document.createElement("span");
+							l.style.fontWeight = "600";
+							l.style.color = "#2980b9";
+							l.textContent = label;
+							const v = document.createElement("span");
+							v.textContent = value;
+							row.appendChild(l);
+							row.appendChild(v);
+							card.appendChild(row);
+						};
 
-						const pMatricola = document.createElement("p");
-						const strongMat = document.createElement("strong");
-						strongMat.textContent = "Matricola: ";
-						pMatricola.appendChild(strongMat);
-						pMatricola.appendChild(document.createTextNode(esito.matricola));
+						addRow("Nome corso:", esito.nome_corso);
+						addRow("Data appello:", esito.data ? new Date(esito.data).toLocaleDateString("it-IT") : "-");
+						addRow("Matricola:", esito.matricola);
+						addRow("Cognome:", esito.cognome);
+						addRow("Nome:", esito.nome);
+						addRow("Email:", esito.email);
+						addRow("Corso di laurea:", esito.corsolaurea);
+						addRow("Voto:", esito.voto != null ? esito.voto : "Non definito");
+						addRow("Stato:", esito.statodivalutazione);
 
-						const pCognome = document.createElement("p");
-						const strongCog = document.createElement("strong");
-						strongCog.textContent = "Cognome: ";
-						pCognome.appendChild(strongCog);
-						pCognome.appendChild(document.createTextNode(esito.cognome));
-
-						const pNome = document.createElement("p");
-						const strongNome = document.createElement("strong");
-						strongNome.textContent = "Nome: ";
-						pNome.appendChild(strongNome);
-						pNome.appendChild(document.createTextNode(esito.nome));
-
-						const pEmail = document.createElement("p");
-						const strongEmail = document.createElement("strong");
-						strongEmail.textContent = "Email: ";
-						pEmail.appendChild(strongEmail);
-						pEmail.appendChild(document.createTextNode(esito.email));
-
-						const pCorsodiLaurea = document.createElement("p");
-						const strongCorsoL = document.createElement("strong");
-						strongCorsoL.textContent = "Corso di laurea: ";
-						pCorsodiLaurea.appendChild(strongCorsoL);
-						pCorsodiLaurea.appendChild(document.createTextNode(esito.corsolaurea));
-
-						const pVoto = document.createElement("p");
-						const strongVoto = document.createElement("strong");
-						strongVoto.textContent = "Voto: ";
-						pVoto.appendChild(strongVoto);
-						pVoto.appendChild(document.createTextNode(esito.voto != null ? esito.voto : "Non definito"));
-
-						const pStato = document.createElement("p");
-						const strongStato = document.createElement("strong");
-						strongStato.textContent = "Stato: ";
-						pStato.appendChild(strongStato);
-						pStato.appendChild(document.createTextNode(esito.statodivalutazione));
-
-						// Appendo tutti i paragrafi al contenuto
-						this.esitoContent.appendChild(pNomeCorso);
-						this.esitoContent.appendChild(pData);
-						this.esitoContent.appendChild(pMatricola);
-						this.esitoContent.appendChild(pCognome);
-						this.esitoContent.appendChild(pNome);
-						this.esitoContent.appendChild(pEmail);
-						this.esitoContent.appendChild(pCorsodiLaurea);
-						this.esitoContent.appendChild(pVoto);
-						this.esitoContent.appendChild(pStato);
+						this.esitoContent.appendChild(card);
 
 						if (esito.voto != null && esito.statodivalutazione != "RIFIUTATO") {
 							this.rifiutaButton.style.display = "inline-block";
@@ -218,13 +189,14 @@
 						} else {
 							this.rifiutaButton.style.display = "none";
 							this.trashcan.style.display = "none";
-
 							const msg = document.createElement("p");
 							msg.textContent = "Il voto è stato rifiutato";
 							this.esitoContent.appendChild(msg);
 						}
 
 						this.esitoSection.style.display = "block";
+						// Mostra il pulsante home
+						if (homeBtn) homeBtn.style.display = "block";
 					} else {
 						document.getElementById("message").textContent = req.responseText;
 					}
@@ -313,6 +285,43 @@
 			this.corsi.show();
 			this.appelli.reset();
 		};
+	}
+
+	function showCorsiSection() {
+		hideAllSections();
+		document.getElementById("corsiSection").style.display = "block";
+		document.getElementById("message").textContent = "";
+		if (pageOrchestrator && pageOrchestrator.corsi) {
+			pageOrchestrator.corsi.show();
+		}
+		const homeBtn = document.getElementById("homeButton");
+		if (homeBtn) homeBtn.style.display = "none";
+	}
+
+	const homeBtn = document.getElementById("homeButton");
+	if (homeBtn) {
+		homeBtn.addEventListener("click", () => {
+			showCorsiSection();
+		});
+	}
+
+	function hideAllSections() {
+		["corsiSection", "appelliSection", "esitoSection"].forEach(id => {
+			const el = document.getElementById(id);
+			if (el) el.style.display = "none";
+		});
+	}
+
+	// Migliora la visualizzazione della pagina EsitoStudente
+	// Applica una card e layout più leggibile nella funzione Esito.show
+	const esitoSection = document.getElementById("esitoSection");
+	if (esitoSection) {
+		esitoSection.style.background = "#fff";
+		esitoSection.style.borderRadius = "16px";
+		esitoSection.style.boxShadow = "0 4px 24px rgba(44,62,80,0.13)";
+		esitoSection.style.padding = "32px 24px";
+		esitoSection.style.maxWidth = "420px";
+		esitoSection.style.margin = "40px auto";
 	}
 
 })(); 

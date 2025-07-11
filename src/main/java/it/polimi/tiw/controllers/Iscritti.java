@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import it.polimi.tiw.beans.IscrittiBean;
 import it.polimi.tiw.beans.DocenteBean;
@@ -67,7 +68,7 @@ public class Iscritti extends HttpServlet {
             }
 
             List<IscrittiBean> iscritti = appelloDAO.cercaIscritti(orderBy, orderDirection);
-            Gson gson = new Gson();
+            Gson gson = new GsonBuilder().create();
             String json = gson.toJson(iscritti);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");

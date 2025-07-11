@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import it.polimi.tiw.beans.DocenteVerbaleBean;
 import it.polimi.tiw.beans.DocenteBean;
@@ -43,7 +44,7 @@ public class ElencoVerbali extends HttpServlet {
         DocenteDAO docenteDAO = new DocenteDAO(connection, docente.getIDUtente());
         try {
             List<DocenteVerbaleBean> infoVerbale = docenteDAO.cercaVerbali();
-            Gson gson = new Gson();
+            Gson gson = new GsonBuilder().create();
             String json = gson.toJson(infoVerbale);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");

@@ -9,7 +9,9 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -92,7 +94,22 @@ public class PaginaVerbale extends HttpServlet {
         List<IscrittiBean> studentiAggiornati = new ArrayList<>();
         try {
             studentiAggiornati = valutazioneDAO.getInfoStudentiAggiornati(id_appello, studentiDaAggiornare);
-            result.put("infoverbalizzati", studentiAggiornati);
+            // Converti gli studenti in mappe con stringhe
+            List<Map<String, Object>> studentiMap = new ArrayList<>();
+            for (IscrittiBean studente : studentiAggiornati) {
+                Map<String, Object> studenteMap = new HashMap<>();
+                studenteMap.put("id_studente", studente.getIdStudente());
+                studenteMap.put("nome", studente.getNome());
+                studenteMap.put("cognome", studente.getCognome());
+                studenteMap.put("email", studente.getEmail());
+                studenteMap.put("matricola", studente.getMatricola());
+                studenteMap.put("corso_laurea", studente.getCorsoLaurea());
+                studenteMap.put("statoDiValutazione", studente.getStatoDiValutazione() != null ? studente.getStatoDiValutazione().toString() : null);
+                studenteMap.put("voto", studente.getVoto());
+                studenteMap.put("id_appello", studente.getIDAppello());
+                studentiMap.add(studenteMap);
+            }
+            result.put("infoverbalizzati", studentiMap);
         } catch (SQLException e) {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                     "Errore nel recuperare le informazioni degli studenti aggiornati.");
@@ -107,13 +124,23 @@ public class PaginaVerbale extends HttpServlet {
         VerbaleBean verbale = new VerbaleBean();
         try {
             verbale = valutazioneDAO.getUltimoVerbale();
-            result.put("verbale", verbale);
+            // Converti il verbale in una mappa con stringhe
+            Map<String, Object> verbaleMap = new HashMap<>();
+            verbaleMap.put("id_verbale", verbale.getIDVverbale());
+            verbaleMap.put("codice", verbale.getCodice());
+            verbaleMap.put("id_appello", verbale.getIDAppello());
+            verbaleMap.put("dataAppello", verbale.getDataAppello() != null ? verbale.getDataAppello().toString() : null);
+            verbaleMap.put("dataVerbale", verbale.getDataVerbale() != null ? verbale.getDataVerbale().toString() : null);
+            verbaleMap.put("ora", verbale.getOra() != null ? verbale.getOra().toString() : null);
+            result.put("verbale", verbaleMap);
         } catch (SQLException e) {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                     "Errore nel recuperare il verbale creato.");
             return;
         }
+        
         Gson gson = new GsonBuilder().create();
+            
         String json = gson.toJson(result);
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");

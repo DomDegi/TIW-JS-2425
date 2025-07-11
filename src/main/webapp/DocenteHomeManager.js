@@ -1,111 +1,20 @@
 (function() {
 	let pageOrchestrator = new PageOrchestrator();
-	let contextPath = '/' + window.location.pathname.split('/')[1];
 
 	window.addEventListener("load", () => {
-		if (sessionStorage.getItem("email") == null || sessionStorage.getItem("role") !== "docente") {
+		if (sessionStorage.getItem("email") == null || sessionStorage.getItem("role") != "docente") {
 			window.location.href = "index.html";
 		} else {
 			pageOrchestrator.start();
 			pageOrchestrator.refresh();
 		}
 		document.getElementById("username").textContent = sessionStorage.getItem("email");
+		document.getElementById("role").textContent = sessionStorage.getItem("role");
 		document.getElementById("logoutBtn").addEventListener("click", () => {
 			sessionStorage.clear();
 			window.location.href = "index.html";
 		});
 	}, false);
-
-	document.getElementById("inserimentoMultiploBtn").addEventListener("click", function() {
-		const modal = document.getElementById("inserimentoMultiploModal");
-		const tbody = document.getElementById("inserimentoMultiploBody");
-		tbody.innerHTML = "";
-		// Filtra solo NON_INSERITO
-		const nonInseriti = pageOrchestrator.iscritti.iscrittiList.filter(s => s.statodivalutazione === "NON_INSERITO");
-		if (nonInseriti.length === 0) {
-			const row = document.createElement("tr");
-			const cell = document.createElement("td");
-			cell.setAttribute("colspan", "6");
-			cell.textContent = "Nessuno studente nello stato NON_INSERITO";
-			row.appendChild(cell);
-			tbody.appendChild(row);
-		} else {
-			nonInseriti.forEach(studente => {
-				const row = document.createElement("tr");
-				row.setAttribute("data-id_studente", studente.id_studente);
-				["matricola", "nome", "cognome", "email", "corsolaurea"].forEach(field => {
-					const cell = document.createElement("td");
-					cell.textContent = studente[field];
-					row.appendChild(cell);
-				});
-				const votoCell = document.createElement("td");
-				const input = document.createElement("input");
-				input.type = "text";
-				input.name = "voto";
-				votoCell.appendChild(input);
-				row.appendChild(votoCell);
-				tbody.appendChild(row);
-			});
-		}
-		modal.style.display = "flex";
-		document.body.style.overflow = "hidden";
-	});
-	document.getElementById("closeInserimentoModal").addEventListener("click", function() {
-		document.getElementById("inserimentoMultiploModal").style.display = "none";
-		document.body.style.overflow = "auto";
-	});
-	document.getElementById("inserimentoMultiploForm").addEventListener("submit", function(event) {
-		event.preventDefault();
-		const appelloId = pageOrchestrator.iscritti.currentAppelloId;
-		const rows = document.querySelectorAll("#inserimentoMultiploBody tr");
-		const matricole = [];
-		let voto = null;
-		rows.forEach(row => {
-			const id_studente = row.getAttribute("data-id_studente");
-			const input = row.querySelector("input[name='voto']");
-			if (input.value.trim() !== "") {
-				matricole.push(id_studente);
-				voto = input.value.trim();
-			}
-		});
-		if (matricole.length === 0) return;
-		makeCall("POST", contextPath + "/inserisci-valutazione",
-			`matricole=${encodeURIComponent(matricole.join(","))}&id_appello=${appelloId}&voto=${encodeURIComponent(voto)}`,
-			function(req) {
-				if (req.readyState === XMLHttpRequest.DONE && req.status === 200) {
-					pageOrchestrator.iscritti.show(appelloId);
-					document.getElementById("inserimentoMultiploModal").style.display = "none";
-					document.body.style.overflow = "auto";
-				}
-			}
-		);
-	});
-
-	document.getElementById("pubblicaButton").addEventListener("click", function() {
-		let appelloId = pageOrchestrator.iscritti.currentAppelloId;
-		if (!appelloId) return;
-		makeCall("POST", contextPath + "/pubblica-voti", `id_appello=${appelloId}`, function(req) {
-			if (req.readyState === XMLHttpRequest.DONE && req.status === 200) {
-				pageOrchestrator.iscritti.show(appelloId);
-				document.getElementById("pubblicaButton").disabled = true;
-				document.getElementById("inserimentoMultiploBtn").disabled = true;
-			}
-		});
-	});
-
-	document.getElementById("verbalizzaButton").addEventListener("click", function() {
-		let appelloId = pageOrchestrator.iscritti.currentAppelloId;
-		if (!appelloId) return;
-		makeCall("POST", contextPath + "/verbalizza", `id_appello=${appelloId}`, function(req) {
-			if (req.readyState === XMLHttpRequest.DONE && req.status === 200) {
-				const verbale = JSON.parse(req.responseText);
-				mostraVerbale(verbale);
-				document.getElementById("verbalizzaButton").disabled = true;
-				document.getElementById("pubblicaButton").disabled = true;
-				document.getElementById("inserimentoMultiploBtn").disabled = true;
-			}
-		});
-	});
 
 	function Corsi(_corsiTable, _corsiBody) {
 		this.corsiTable = _corsiTable;
@@ -117,47 +26,35 @@
 		};
 		this.show = function() {
 			var self = this;
-			makeCall("GET", contextPath + "/home-docente", null,
-				function(req) {
-					if (req.readyState == XMLHttpRequest.DONE) {
-						if (req.status === 401) {
-							window.location.href = "index.html";
+			makeCall("GET", "home-docente", null, function(req) {
+				if (req.readyState == XMLHttpRequest.DONE) {
+					var message = req.responseText;
+					if (req.status == 200) {
+						var corsiListToShow = JSON.parse(message);
+						if (corsiListToShow.length == 0) {
+							self.messageContainer.textContent = "No CORSI";
 							return;
 						}
-						var message = req.responseText;
-						if (req.status == 200) {
-							var corsiListToShow = JSON.parse(message);
-							if (corsiListToShow.length == 0) {
-								self.messageContainer.textContent = "Nessun corso disponibile.";
-								return;
-							}
-
-							self.update(corsiListToShow);
-							self.corsiTable.style.visibility = "visible";
-
-						} else {
-							self.messageContainer.textContent = message;
-						}
+						self.update(corsiListToShow);
+						self.corsiTable.style.visibility = "visible";
+					} else {
+						self.messageContainer.textContent = message;
 					}
 				}
-			);
+			});
 		};
-
 		this.update = function(corsiList) {
-			this.corsiBody.innerHTML = ""; // Pulisce righe precedenti
+			this.corsiBody.innerHTML = "";
 			corsiList.forEach(corso => {
 				let row = document.createElement("tr");
 				let cell = document.createElement("td");
 				cell.textContent = corso.nome;
-				cell.classList.add("cliccabile");
 				cell.style.textDecoration = "underline";
 				cell.style.color = "#007bff";
 				row.appendChild(cell);
-
 				row.addEventListener("click", () => {
 					pageOrchestrator.appelli.show(corso.id_corso);
 				});
-
 				this.corsiBody.appendChild(row);
 			});
 		};
@@ -166,76 +63,29 @@
 	function Appelli(appelliSection, appelliBody) {
 		this.appelliSection = appelliSection;
 		this.appelliBody = appelliBody;
-
 		this.reset = function() {
 			this.appelliSection.style.display = "none";
 			this.appelliBody.innerHTML = "";
 		};
 		this.show = function(corsoId) {
 			this.reset();
-			makeCall("GET", contextPath + "/home-docente?id_corso=" + corsoId, null, (req) => {
+			makeCall("GET", "home-docente?id_corso=" + corsoId, null, (req) => {
 				if (req.readyState === XMLHttpRequest.DONE) {
-					if (req.status === 401) {
-						window.location.href = "index.html";
-						return;
-					}
 					if (req.status === 200) {
 						let appelli = JSON.parse(req.responseText);
 						appelli.forEach(appello => {
 							let row = document.createElement("tr");
 							let cell = document.createElement("td");
 							cell.textContent = appello.data;
-							cell.classList.add("cliccabile");
 							cell.style.textDecoration = "underline";
 							cell.style.color = "#007bff";
-							cell.addEventListener("click", () => {
+							row.appendChild(cell);
+							row.addEventListener("click", () => {
 								pageOrchestrator.iscritti.show(appello.id_appello);
 							});
-							row.appendChild(cell);
 							this.appelliBody.appendChild(row);
-							this.appelliSection.style.display = "block";
 						});
-					} else {
-						document.getElementById("message").textContent = req.responseText;
-					}
-				}
-			});
-		};
-	}
-
-	function Verbali(verbaliSection, verbaliBody) {
-		this.verbaliSection = verbaliSection;
-		this.verbaliBody = verbaliBody;
-
-		this.reset = function() {
-			this.verbaliSection.style.display = "none";
-			this.verbaliBody.innerHTML = "";
-		};
-
-		this.show = function() {
-			this.reset();
-			makeCall("GET", contextPath + "/elenco-verbali", null, (req) => {
-				if (req.readyState === XMLHttpRequest.DONE) {
-					if (req.status === 401) {
-						window.location.href = "index.html";
-						return;
-					}
-					if (req.status === 200) {
-						let verbali = JSON.parse(req.responseText);
-						verbali.forEach(verbale => {
-							let row = document.createElement("tr");
-							let cellCorso = document.createElement("td");
-							cellCorso.textContent = verbale.nome_corso || verbale.nomeCorso || verbale.nome || "-";
-							row.appendChild(cellCorso);
-							let cellDataAppello = document.createElement("td");
-							cellDataAppello.textContent = verbale.data_appello || verbale.dataAppello || verbale.data || "-";
-							row.appendChild(cellDataAppello);
-							let cellDataVerbale = document.createElement("td");
-							cellDataVerbale.textContent = verbale.data_verbale || verbale.dataVerbale || "-";
-							row.appendChild(cellDataVerbale);
-							this.verbaliBody.appendChild(row);
-						});
-						this.verbaliSection.style.display = "block";
+						this.appelliSection.style.display = "block";
 					} else {
 						document.getElementById("message").textContent = req.responseText;
 					}
@@ -250,7 +100,6 @@
 		this.currentAppelloId = null;
 		this.iscrittiList = [];
 		this.currentSort = { key: null, ascending: true };
-
 		this.reset = function() {
 			this.iscrittiSection.style.display = "none";
 			this.iscrittiBody.innerHTML = "";
@@ -258,7 +107,6 @@
 			this.iscrittiList = [];
 			this.currentSort = { key: null, ascending: true };
 		};
-
 		this.show = function(appelloId) {
 			this.reset();
 			this.currentAppelloId = appelloId;
@@ -266,32 +114,29 @@
 			document.getElementById("corsiSection").style.display = "none";
 			document.getElementById("appelliSection").style.display = "none";
 			let self = this;
-			makeCall("GET", contextPath + "/home-docente?id_appello=" + appelloId, null, (req) => {
+			makeCall("GET", "iscritti-appello?id_appello=" + appelloId, null, (req) => {
 				if (req.readyState === XMLHttpRequest.DONE) {
 					if (req.status === 200) {
 						self.iscrittiList = JSON.parse(req.responseText);
 						self.renderTable(self.iscrittiList);
 						self.iscrittiSection.style.display = "block";
-						self.attachSortHandlers();
 					} else {
 						document.getElementById("message").textContent = req.responseText;
 					}
 				}
 			});
 		};
-
 		this.renderTable = function(list) {
 			this.iscrittiBody.innerHTML = "";
 			list.forEach(studente => {
 				let row = document.createElement("tr");
-				["matricola", "cognome", "nome", "email", "corsolaurea", "voto", "statodivalutazione"].forEach(field => {
+				["matricola", "cognome", "nome", "email", "corso_laurea", "voto", "statoDiValutazione"].forEach(field => {
 					let cell = document.createElement("td");
-					cell.textContent = studente[field];
+					cell.textContent = studente[field] || '-';
 					row.appendChild(cell);
 				});
-				// Colonna Azioni
 				let azioniCell = document.createElement("td");
-				if (!["PUBBLICATO", "RIFIUTATO", "VERBALIZZATO"].includes(studente["statodivalutazione"])) {
+				if (!["PUBBLICATO", "RIFIUTATO", "VERBALIZZATO"].includes(studente["statoDiValutazione"])) {
 					let modificaButton = document.createElement("button");
 					modificaButton.textContent = "MODIFICA";
 					modificaButton.addEventListener("click", () => {
@@ -307,7 +152,6 @@
 				this.iscrittiBody.appendChild(row);
 			});
 		};
-
 		this.sortBy = function(key) {
 			if (this.currentSort.key === key) {
 				this.currentSort.ascending = !this.currentSort.ascending;
@@ -334,7 +178,6 @@
 			});
 			this.renderTable(this.iscrittiList);
 		};
-
 		this.attachSortHandlers = function() {
 			const headers = this.iscrittiSection.querySelectorAll("thead a[data-order]");
 			headers.forEach(header => {
@@ -345,13 +188,11 @@
 				});
 			});
 		};
-
 		this.showInserimentoMultiplo = function() {
 			const modal = document.getElementById("inserimentoMultiploModal");
 			const tbody = document.getElementById("inserimentoMultiploBody");
 			tbody.innerHTML = "";
-			// filtra iscritti che hanno lo stato di valutazione a non inserito
-			const nonInseriti = this.iscrittiList.filter(s => s.statodivalutazione === "NON_INSERITO");
+			const nonInseriti = this.iscrittiList.filter(s => s.statoDiValutazione === "NON_INSERITO");
 			if (nonInseriti.length === 0) {
 				const row = document.createElement("tr");
 				const cell = document.createElement("td");
@@ -362,11 +203,11 @@
 			} else {
 				nonInseriti.forEach(studente => {
 					const row = document.createElement("tr");
-					row.setAttribute("data-id_studente", studente.id_studente);
-					const fields = ["matricola", "nome", "cognome", "email", "corsolaurea"];
+					row.setAttribute("data-studente-id", studente.id_studente);
+					const fields = ["matricola", "nome", "cognome", "email", "corso_laurea"];
 					fields.forEach(field => {
 						const cell = document.createElement("td");
-						cell.textContent = studente[field];
+						cell.textContent = studente[field] || '-';
 						row.appendChild(cell);
 					});
 					const votoCell = document.createElement("td");
@@ -389,27 +230,24 @@
 		document.getElementById("appelliSection").style.display = "none";
 		document.getElementById("iscrittiSection").style.display = "none";
 		document.getElementById("modificaStudenteSection").style.display = "block";
-		// Chiamata AJAX per popolare il form
-		makeCall("GET", contextPath + "/inserisci-valutazione?id_studente=" + iscritto.id_studente + "&id_appello=" + iscritto.id_appello, null,
-			function(req) {
-				if (req.readyState == XMLHttpRequest.DONE) {
-					if (req.status == 200) {
-						const studente = JSON.parse(req.responseText);
-						document.getElementById("modMatricola").textContent = studente.matricola;
-						document.getElementById("modCognome").textContent = studente.cognome;
-						document.getElementById("modNome").textContent = studente.nome;
-						document.getElementById("modEmail").textContent = studente.email;
-						document.getElementById("modLaurea").textContent = studente.corsolaurea;
-						document.getElementById("modVoto").value = studente.voto || "";
-						document.getElementById("modStato").textContent = studente.statodivalutazione;
-						document.getElementById("modificaStudenteForm").dataset.id_studente = studente.id_studente;
-						document.getElementById("modificaStudenteForm").dataset.id_appello = studente.id_appello;
-					} else {
-						document.getElementById("message").textContent = req.responseText;
-					}
+		makeCall("GET", "inserisci-valutazione?id_studente=" + iscritto.id_studente + "&id_appello=" + iscritto.id_appello, null, function(req) {
+			if (req.readyState == XMLHttpRequest.DONE) {
+				if (req.status == 200) {
+					const studente = JSON.parse(req.responseText);
+					document.getElementById("modMatricola").textContent = studente.matricola || '-';
+					document.getElementById("modCognome").textContent = studente.cognome || '-';
+					document.getElementById("modNome").textContent = studente.nome || '-';
+					document.getElementById("modEmail").textContent = studente.email || '-';
+					document.getElementById("modLaurea").textContent = studente.corso_laurea || '-';
+					document.getElementById("modVoto").value = studente.voto || "";
+					document.getElementById("modStato").textContent = studente.statoDiValutazione || '-';
+					document.getElementById("modificaStudenteForm").dataset.studenteId = studente.id_studente;
+					document.getElementById("modificaStudenteForm").dataset.appelloId = studente.id_appello;
+				} else {
+					document.getElementById("message").textContent = req.responseText;
 				}
 			}
-		);
+		});
 	}
 
 	function mostraVerbale(verbale, infoverbalizzati) {
@@ -417,23 +255,21 @@
 		document.getElementById("corsiTable").style.display = "none";
 		document.getElementById("appelliSection").style.display = "none";
 		document.getElementById("iscrittiSection").style.display = "none";
-
 		const verbaleSection = document.getElementById('verbaleSection');
 		verbaleSection.style.display = 'block';
-
+		
 		document.getElementById('verbaleId').textContent = verbale.id_verbale || '-';
-		document.getElementById('verbaleData').textContent = verbale.data_verbale || '-';
-		document.getElementById('verbaleOra').textContent = verbale.ora_verbale || '-';
-		document.getElementById('verbaleDataApp').textContent = verbale.data_appello || '-';
-
+		document.getElementById('verbaleData').textContent = verbale.dataVerbale || '-';
+		document.getElementById('verbaleOra').textContent = verbale.ora || '-';
+		document.getElementById('verbaleDataApp').textContent = verbale.dataAppello || '-';
+		
 		const tbody = document.getElementById('infoverbalizzatiBody');
 		tbody.innerHTML = '';
-
 		infoverbalizzati.forEach(item => {
 			let row = document.createElement("tr");
-			["matricola", "cognome", "nome", "voto", "statodivalutazione"].forEach(field => {
+			["matricola", "cognome", "nome", "voto", "statoDiValutazione"].forEach(field => {
 				let cell = document.createElement("td");
-				cell.textContent = item[field];
+				cell.textContent = item[field] || '-';
 				row.appendChild(cell);
 			});
 			tbody.appendChild(row);
@@ -446,22 +282,28 @@
 		document.getElementById("appelliSection").style.display = "none";
 		document.getElementById("iscrittiSection").style.display = "none";
 		document.getElementById("message").textContent = "";
-
 		document.getElementById("elencoVerbaliSection").style.display = "block";
-
-		makeCall("GET", contextPath + "/elenco-verbali", null, (req) => {
+		const tbody = document.getElementById("elencoVerbaliBody");
+		tbody.innerHTML = '';
+		makeCall("GET", "elenco-verbali", null, (req) => {
 			if (req.readyState === XMLHttpRequest.DONE) {
 				if (req.status === 200) {
 					const verbali = JSON.parse(req.responseText);
-					const tbody = document.getElementById("elencoVerbaliBody");
-					tbody.innerHTML = '';
 					verbali.forEach(verbale => {
 						let row = document.createElement("tr");
-						["nome_corso", "data_appello", "data_verbale"].forEach(field => {
-							let cell = document.createElement("td");
-							cell.textContent = verbale[field];
-							row.appendChild(cell);
-						});
+						// Handle the fields from DocenteVerbaleBean
+						let cellCorso = document.createElement("td");
+						cellCorso.textContent = verbale.nome_corso || verbale.nomeCorso || '-';
+						row.appendChild(cellCorso);
+						
+						let cellDataAppello = document.createElement("td");
+						cellDataAppello.textContent = verbale.dataAppello || verbale.data_appello || '-';
+						row.appendChild(cellDataAppello);
+						
+						let cellDataVerbale = document.createElement("td");
+						cellDataVerbale.textContent = verbale.dataVerbale || verbale.data_verbale || '-';
+						row.appendChild(cellDataVerbale);
+						
 						tbody.appendChild(row);
 					});
 				} else {
@@ -475,21 +317,17 @@
 		this.corsi = null;
 		this.appelli = null;
 		this.iscritti = null;
-		this.verbali = null;
-
 		this.start = function() {
 			this.corsi = new Corsi(document.getElementById("corsiTable"), document.getElementById("corsiBody"));
 			this.appelli = new Appelli(document.getElementById("appelliSection"), document.getElementById("appelliBody"));
 			this.iscritti = new Iscritti(document.getElementById("iscrittiSection"), document.getElementById("iscrittiBody"));
 			this.iscritti.attachSortHandlers();
-
-			// VERBALIZZA
 			document.getElementById("verbalizzaButton").addEventListener("click", () => {
 				if (this.iscritti.currentAppelloId == null) {
 					document.getElementById("message").textContent = "Nessun appello selezionato.";
 					return;
 				}
-				makeCall("POST", contextPath + "/verbalizza", "id_appello=" + this.iscritti.currentAppelloId, (req) => {
+				makeCall("POST", "pagina-verbale?id_appello=" + this.iscritti.currentAppelloId, null, (req) => {
 					if (req.readyState === XMLHttpRequest.DONE) {
 						if (req.status === 200) {
 							let response = null;
@@ -499,27 +337,27 @@
 								document.getElementById("message").textContent = "Errore parsing verbale JSON.";
 								return;
 							}
-							mostraVerbale(response.verbale, response.infoverbalizzati);
-							document.getElementById("message").textContent = "";
+							if (response.verbale && response.infoverbalizzati) {
+								mostraVerbale(response.verbale, response.infoverbalizzati);
+								document.getElementById("message").textContent = "";
+							} else {
+								document.getElementById("message").textContent = "Errore: risposta non valida dal server.";
+							}
 						} else {
 							document.getElementById("message").textContent = req.responseText;
 						}
 					}
 				});
 			});
-
-			// VERBALI
 			document.getElementById("verbaliButton").addEventListener("click", () => {
 				mostraElencoVerbali();
 			});
-
-			// PUBBLICA
 			document.getElementById("pubblicaButton").addEventListener("click", () => {
 				if (this.iscritti.currentAppelloId == null) {
 					document.getElementById("message").textContent = "Nessun appello selezionato.";
 					return;
 				}
-				makeCall("POST", contextPath + "/pubblica-voti", "id_appello=" + this.iscritti.currentAppelloId, (req) => {
+				makeCall("POST", "iscritti-appello?id_appello=" + this.iscritti.currentAppelloId, null, (req) => {
 					if (req.readyState === XMLHttpRequest.DONE) {
 						if (req.status === 200) {
 							this.iscritti.show(this.iscritti.currentAppelloId);
@@ -530,80 +368,68 @@
 					}
 				});
 			});
-
-			// INSERIMENTO MULTIPLO
 			document.getElementById("inserimentoMultiploBtn").addEventListener("click", () => {
 				this.iscritti.showInserimentoMultiplo();
 			});
-
-			// CHIUDI MODALE
 			document.getElementById("closeInserimentoModal").addEventListener("click", () => {
 				document.getElementById("inserimentoMultiploModal").style.display = "none";
 				document.body.style.overflow = "auto";
 			});
-
-			// MODIFICA STUDENTE
 			document.getElementById("modificaStudenteForm").addEventListener("submit", function(e) {
 				e.preventDefault();
-				const id_studente = document.getElementById("modificaStudenteForm").dataset.id_studente;
-				const id_appello = document.getElementById("modificaStudenteForm").dataset.id_appello;
+				const studenteId = document.getElementById("modificaStudenteForm").dataset.studenteId;
+				const appelloId = document.getElementById("modificaStudenteForm").dataset.appelloId;
 				const voto = document.getElementById("modVoto").value;
-
 				const validi = ["18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "30L", "30l", "ASSENTE", "RIPROVATO"];
-
 				if (!validi.includes(voto)) {
 					document.getElementById("message").textContent = "Voto non valido, riprova.";
 					return;
 				}
-
-				makeCall("POST", contextPath + "/inserisci-valutazione?id_studente=" + id_studente + "&id_appello=" + id_appello + "&voto=" + voto, null, (req) => {
+				makeCall("POST", "inserisci-valutazione?id_studente=" + studenteId + "&id_appello=" + appelloId + "&voto=" + voto, null, (req) => {
 					if (req.readyState === XMLHttpRequest.DONE) {
 						if (req.status === 200) {
 							document.getElementById("message").textContent = "Voto modificato con successo.";
 							document.getElementById("modificaStudenteSection").style.display = "none";
-							pageOrchestrator.iscritti.show(id_appello);
+							pageOrchestrator.iscritti.show(appelloId);
 						} else {
 							document.getElementById("message").textContent = req.responseText;
 						}
 					}
 				});
 			});
-
-			// INSERIMENTO MULTIPLO SUBMIT
 			document.getElementById("inserimentoMultiploForm").addEventListener("submit", function(event) {
 				event.preventDefault();
-
-				const id_appello = pageOrchestrator.iscritti.currentAppelloId;
+				const appelloId = pageOrchestrator.iscritti.currentAppelloId;
 				const rows = document.querySelectorAll("#inserimentoMultiploBody tr");
-				const matricole = [];
-				let voto = null;
-
-				rows.forEach(row => {
-					const id_studente = row.getAttribute("data-id_studente");
+				const requests = Array.from(rows).map(row => {
+					const studenteId = row.getAttribute("data-studente-id");
 					const votoInput = row.querySelector("input[name='voto']");
-					const votoValue = votoInput.value.trim();
-
-					if (votoValue !== "") {
-						matricole.push(id_studente);
-						voto = votoValue;
+					const voto = votoInput.value.trim();
+					if (voto !== "") {
+						return new Promise((resolve, reject) => {
+							makeCall("POST", "inserisci-valutazione?id_studente=" + studenteId + "&id_appello=" + appelloId + "&voto=" + voto, null, (req) => {
+								if (req.readyState === XMLHttpRequest.DONE) {
+									if (req.status === 200) {
+										resolve();
+									} else {
+										reject(req.status);
+									}
+								}
+							});
+						});
+					} else {
+						return Promise.resolve();
 					}
 				});
-
-				if (matricole.length === 0) return;
-
-				makeCall("POST", contextPath + "/inserisci-valutazione",
-					`matricole=${encodeURIComponent(matricole.join(","))}&id_appello=${id_appello}&voto=${encodeURIComponent(voto)}`,
-					function(req) {
-						if (req.readyState === XMLHttpRequest.DONE && req.status === 200) {
-							pageOrchestrator.iscritti.show(id_appello);
-							document.getElementById("inserimentoMultiploModal").style.display = "none";
-							document.body.style.overflow = "auto";
-						}
-					}
-				);
+				Promise.all(requests).then(() => {
+					pageOrchestrator.iscritti.show(appelloId);
+					document.getElementById("inserimentoMultiploModal").style.display = "none";
+					document.body.style.overflow = "auto";
+				}).catch(error => {
+					console.error("Errore durante l'inserimento dei voti:", error);
+				});
 			});
 		};
-
 		this.refresh = function() {
 			this.corsi.reset();
 			this.corsi.show();
@@ -611,4 +437,5 @@
 			this.iscritti.reset();
 		};
 	}
+
 })(); 

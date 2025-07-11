@@ -10,7 +10,7 @@ import java.time.LocalTime;
 public class LocalTimeAdapter extends TypeAdapter<LocalTime> {
     @Override
     public void write(JsonWriter out, LocalTime value) throws IOException {
-        out.value(value.toString()); // es: "13:45:30"
+            out.value(value.toString());
     }
 
     @Override

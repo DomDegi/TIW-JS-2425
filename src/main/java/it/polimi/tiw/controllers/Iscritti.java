@@ -6,102 +6,116 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.WebContext;
-import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.WebApplicationTemplateResolver;
-import org.thymeleaf.web.IWebExchange;
-import org.thymeleaf.web.servlet.JakartaServletWebApplication;
+import com.google.gson.Gson;
 
 import it.polimi.tiw.beans.IscrittiBean;
 import it.polimi.tiw.beans.DocenteBean;
 import it.polimi.tiw.dao.AppelloDAO;
-import it.polimi.tiw.dao.ValutazioneDAO;
 import it.polimi.tiw.utilities.DBConnection;
 
 @WebServlet("/iscritti-appello")
 public class Iscritti extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private Connection connection = null;
-    private TemplateEngine templateEngine;
 
     public void init() throws ServletException {
         this.connection = DBConnection.getConnection(getServletContext());
-        ServletContext servletContext = getServletContext();
-        JakartaServletWebApplication webApplication = JakartaServletWebApplication.buildApplication(servletContext);
-        WebApplicationTemplateResolver templateResolver = new WebApplicationTemplateResolver(webApplication);
-        templateResolver.setTemplateMode(TemplateMode.HTML);
-        this.templateEngine = new TemplateEngine();
-        this.templateEngine.setTemplateResolver(templateResolver);
-        templateResolver.setSuffix(".html");
     }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        DocenteBean docente = (DocenteBean) request.getSession().getAttribute("utente");
-        JakartaServletWebApplication application = JakartaServletWebApplication.buildApplication(getServletContext());
-        IWebExchange webExchange = application.buildExchange(request, response);
-        WebContext ctx = new WebContext(webExchange, request.getLocale());
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("utente") == null || !(session.getAttribute("utente") instanceof DocenteBean)) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\": \"Utente non autorizzato\"}");
+            return;
+        }
+        DocenteBean docente = (DocenteBean) session.getAttribute("utente");
+
+        String idAppelloParam = request.getParameter("id_appello");
+        int id_appello;
         try {
-            String idAppelloParam = request.getParameter("id_appello");
-            int id_appello = Integer.parseInt(idAppelloParam);
+            id_appello = Integer.parseInt(idAppelloParam);
+        } catch (NumberFormatException e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Il parametro id_appello deve essere un intero valido");
+            return;
+        }
 
-            String orderBy = request.getParameter("orderBy");
-            String orderDirection = request.getParameter("orderDirection");
-            if (orderDirection != null && orderDirection.equalsIgnoreCase("ASC")) {
-                orderDirection = "ASC";
-            } else {
-                orderDirection = "DESC";
-            }
+        String orderBy = request.getParameter("orderBy");
+        String orderDirection = request.getParameter("orderDirection");
+        if (orderDirection != null && orderDirection.equalsIgnoreCase("ASC")) {
+            orderDirection = "ASC";
+        } else {
+            orderDirection = "DESC";
+        }
 
-            AppelloDAO appelloDAO = new AppelloDAO(connection, id_appello);
+        AppelloDAO appelloDAO = new AppelloDAO(connection, id_appello);
+
+        try {
+            // Verifica che l'appello appartenga al docente
             int docenteCorretto = appelloDAO.cercaIdDocentePerAppello();
             if (docenteCorretto != docente.getIDUtente()) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "L'appello a cui vuoi accedere non è tuo");
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "L'appello a cui vuoi accedere non è tuo");
                 return;
             }
 
             List<IscrittiBean> iscritti = appelloDAO.cercaIscritti(orderBy, orderDirection);
-            ctx.setVariable("iscritti", iscritti);
-            ctx.setVariable("orderBy", orderBy);
-            ctx.setVariable("orderDirection", orderDirection);
-
-            // Controlla se ci sono studenti da verbalizzare (PUBBLICATO o RIFIUTATO)
-            ValutazioneDAO valutazioneDAO = new ValutazioneDAO(connection, id_appello);
-            List<Integer> studentiDaVerbalizzare = valutazioneDAO.getIDStudentiPubbORif();
-            boolean ciSonoStudentiDaVerbalizzare = !studentiDaVerbalizzare.isEmpty();
-            ctx.setVariable("ciSonoStudentiDaVerbalizzare", ciSonoStudentiDaVerbalizzare);
+            Gson gson = new Gson();
+            String json = gson.toJson(iscritti);
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write(json);
 
         } catch (SQLException e) {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                     "Impossibile recuperare gli iscritti a questo appello");
-            return;
-        } catch (NumberFormatException e) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Il parametro id_appello deve essere un intero valido");
-            return;
         }
-        templateEngine.process("/WEB-INF/iscritti-appello.html", ctx, response.getWriter());
     }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        try {
-            String idAppelloParam = request.getParameter("id_appello");
-            int id_appello = Integer.parseInt(idAppelloParam);
-            AppelloDAO appelloDAO = new AppelloDAO(connection, id_appello);
-            appelloDAO.aggiornaPubblicati();
-        } catch (SQLException e) {
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Impossibile pubblicare i voti");
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("utente") == null || !(session.getAttribute("utente") instanceof DocenteBean)) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\": \"Utente non autorizzato\"}");
             return;
+        }
+        DocenteBean docente = (DocenteBean) session.getAttribute("utente");
+
+        String idAppelloParam = request.getParameter("id_appello");
+        int id_appello;
+        try {
+            id_appello = Integer.parseInt(idAppelloParam);
         } catch (NumberFormatException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Il parametro id_appello deve essere un intero valido");
             return;
         }
-        doGet(request, response);
+
+        AppelloDAO appelloDAO = new AppelloDAO(connection, id_appello);
+
+        try {
+            // Verifica che l'appello appartenga al docente
+            int docenteCorretto = appelloDAO.cercaIdDocentePerAppello();
+            if (docenteCorretto != docente.getIDUtente()) {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "L'appello a cui vuoi accedere non è tuo");
+                return;
+            }
+
+            appelloDAO.aggiornaPubblicati();
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write("{\"success\": true}");
+
+        } catch (SQLException e) {
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Impossibile pubblicare i voti");
+        }
     }
 } 

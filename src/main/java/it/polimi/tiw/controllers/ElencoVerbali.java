@@ -1,72 +1,56 @@
 package it.polimi.tiw.controllers;
 
-import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.WebContext;
-import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.WebApplicationTemplateResolver;
-import org.thymeleaf.web.IWebExchange;
-import org.thymeleaf.web.servlet.JakartaServletWebApplication;
+import com.google.gson.Gson;
 
-import it.polimi.tiw.beans.UtenteBean;
 import it.polimi.tiw.beans.DocenteVerbaleBean;
+import it.polimi.tiw.beans.DocenteBean;
 import it.polimi.tiw.dao.DocenteDAO;
 import it.polimi.tiw.utilities.DBConnection;
 
-/**
- * Servlet implementation class ElencoVerbali
- */
 @WebServlet("/elenco-verbali")
 public class ElencoVerbali extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private Connection connection = null;
-    private TemplateEngine templateEngine;
-    
+
     public ElencoVerbali() {
         super();
     }
 
     public void init() throws ServletException {
         this.connection = DBConnection.getConnection(getServletContext());
-        ServletContext servletContext = getServletContext();
-
-        JakartaServletWebApplication webApplication = JakartaServletWebApplication.buildApplication(servletContext);    
-        WebApplicationTemplateResolver templateResolver = new WebApplicationTemplateResolver(webApplication);
-
-        templateResolver.setTemplateMode(TemplateMode.HTML);
-        this.templateEngine = new TemplateEngine();
-        this.templateEngine.setTemplateResolver(templateResolver);
-        templateResolver.setSuffix(".html");
     }
-    
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        UtenteBean utente = (UtenteBean) request.getSession().getAttribute("utente");
-        
-        JakartaServletWebApplication application = JakartaServletWebApplication.buildApplication(getServletContext());
-        IWebExchange webExchange = application.buildExchange(request, response);
-        WebContext ctx = new WebContext(webExchange, request.getLocale());
-        
-        //carica la lista dei verbali
-        try {
-            DocenteDAO docenteDAO = new DocenteDAO(connection, utente.getIDUtente());
-            List<DocenteVerbaleBean> infoVerbale = docenteDAO.cercaVerbali();
-            ctx.setVariable("infoverbale", infoVerbale);
 
-        } catch (SQLException e) {
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Impossibile recuperare i verbali per questo docente");
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("utente") == null || !(session.getAttribute("utente") instanceof DocenteBean)) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\": \"Utente non autorizzato\"}");
             return;
         }
-        templateEngine.process("/WEB-INF/elencoVerbali.html", ctx, response.getWriter());
+        DocenteBean docente = (DocenteBean) session.getAttribute("utente");
+        DocenteDAO docenteDAO = new DocenteDAO(connection, docente.getIDUtente());
+        try {
+            List<DocenteVerbaleBean> infoVerbale = docenteDAO.cercaVerbali();
+            Gson gson = new Gson();
+            String json = gson.toJson(infoVerbale);
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write(json);
+        } catch (SQLException e) {
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Impossibile recuperare i verbali per questo docente");
+        }
     }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

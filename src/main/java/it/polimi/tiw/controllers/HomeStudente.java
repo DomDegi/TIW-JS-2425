@@ -1,98 +1,80 @@
 package it.polimi.tiw.controllers;
-import it.polimi.tiw.beans.CorsoBean;
-import it.polimi.tiw.utilities.DBConnection;
-import it.polimi.tiw.beans.AppelloBean;
+
+import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.*;
-import jakarta.servlet.ServletContext;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.WebContext;
-import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.WebApplicationTemplateResolver;
-import org.thymeleaf.web.IWebExchange;
-import org.thymeleaf.web.servlet.JakartaServletWebApplication;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import it.polimi.tiw.beans.AppelloBean;
+import it.polimi.tiw.beans.CorsoBean;
 import it.polimi.tiw.beans.UtenteBean;
+import it.polimi.tiw.dao.CorsoDAO;
 import it.polimi.tiw.dao.StudenteDAO;
+import it.polimi.tiw.utilities.DBConnection;
 
 @WebServlet("/home-studente")
 public class HomeStudente extends HttpServlet {
-	
     private static final long serialVersionUID = 1L;
     private Connection connection = null;
-    private TemplateEngine templateEngine;
-    
-    
-    @Override
+
     public void init() throws ServletException {
         this.connection = DBConnection.getConnection(getServletContext());
         ServletContext servletContext = getServletContext();
-
-        JakartaServletWebApplication webApplication = JakartaServletWebApplication.buildApplication(servletContext);
-        WebApplicationTemplateResolver templateResolver = new WebApplicationTemplateResolver(webApplication);
-
-        templateResolver.setTemplateMode(TemplateMode.HTML);
-        templateResolver.setSuffix(".html");
-        this.templateEngine = new TemplateEngine();
-        this.templateEngine.setTemplateResolver(templateResolver);
     }
-
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        UtenteBean utente = (UtenteBean) request.getSession().getAttribute("utente");
-        if (utente == null) {
-            response.sendRedirect(getServletContext().getContextPath() + "/login");
+        HttpSession session = request.getSession(false);
+        UtenteBean utente = (session != null) ? (UtenteBean) session.getAttribute("utente") : null;
+        if (session == null || utente == null) {
+            response.sendRedirect("login.html");
             return;
         }
 
-        StudenteDAO studenteDAO = new StudenteDAO(connection, utente.getIDUtente());
+        if (!(utente instanceof it.polimi.tiw.beans.StudenteBean)) {
+            response.sendRedirect("login.html");
+            return;
+        }
 
-        JakartaServletWebApplication application = JakartaServletWebApplication.buildApplication(getServletContext());
-        IWebExchange webExchange = application.buildExchange(request, response);
-        WebContext ctx = new WebContext(webExchange, request.getLocale());
-        ctx.setVariable("email", utente.getEmail());
-
+        String corsoIdParam = request.getParameter("corsoId");
+        Gson gson = new GsonBuilder().create();
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("application/json");
         try {
-            List<CorsoBean> corsi = studenteDAO.cercaCorsi();
-            ctx.setVariable("corsi", corsi);
-
-            String corsoIdParam = request.getParameter("corsoId");
             if (corsoIdParam != null) {
                 int corsoId = Integer.parseInt(corsoIdParam);
-                List<Integer> studenti = studenteDAO.getStudentiIscrittiCorso(corsoId);
-                if (!studenti.contains(utente.getIDUtente())) {
-                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Non sei iscritto a questo corso");
-                    return;
-                }
-                List<AppelloBean> appelli = studenteDAO.cercaAppelliStudente(corsoId);
-                ctx.setVariable("appelli", appelli);
-
-                CorsoBean corsoSelezionato = null;
-            for (CorsoBean c : corsi) {
-                if (c.getIDCorso() == corsoId) {
-                    corsoSelezionato = c;
-                    break;
-                }
+                CorsoDAO corsoDAO = new CorsoDAO(connection, corsoId);
+                List<AppelloBean> appelli = corsoDAO.cercaAppelli();
+                String json = gson.toJson(appelli);
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.getWriter().write(json);
+                return;
+            } else {
+                StudenteDAO studenteDAO = new StudenteDAO(connection, utente.getIDUtente());
+                List<CorsoBean> corsi = studenteDAO.cercaCorsi();
+                String json = gson.toJson(corsi);
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.getWriter().write(json);
+                return;
             }
-            ctx.setVariable("corsoSelezionato", corsoSelezionato);
-            }
-        } catch (SQLException e) {
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Impossibile recuperare i dati");
-            return;
         } catch (NumberFormatException e) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Il parametro corsoId deve essere un intero valido");
-            return;
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid corsoId");
+        } catch (SQLException e) {
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
         }
-        templateEngine.process("/WEB-INF/home-studente.html", ctx, response.getWriter());
     }
-    
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         doGet(request, response);
     }
 }

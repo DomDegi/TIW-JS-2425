@@ -1,20 +1,26 @@
 <!DOCTYPE html>
-<html lang="it">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Login Studente/Docente</title>
-    <link rel="stylesheet" href="styles/style.css">
+<meta charset="ISO-8859-1">
+<title>Login page</title>
+<link rel="stylesheet" href="style.css">
+<script src="utils.js" charset="utf-8" defer></script>
+<script src="LoginPageManager.js" charset="utf-8" defer></script>
+
 </head>
 <body>
-    <div class="login-container">
-        <h1>Login Studente/Docente</h1>
-        <form action="login" method="post" autocomplete="on">
-            <label for="email" style="display:none;">Email</label>
-            <input type="text" id="email" name="email" placeholder="Email" required autocomplete="username">
-            <label for="password" style="display:none;">Password</label>
-            <input type="password" id="password" name="password" placeholder="Password" required autocomplete="current-password">
-            <button type="submit">Accedi</button>
-        </form>
-    </div>
+	<h1>Servizi online JS</h1>
+
+	<form id="loginform">
+
+		<fieldset>
+			Email: <input type="email" name="email" required placeholder="Inserisci la tua email"> <br>
+			Password: <input type="password" name="password" required placeholder="Password"><br>
+			<input id="loginbutton" type="button" value="Login"
+				style="background-color: #2e7d32; color: white; padding: 10px 16px; border: none; border-radius: 4px; cursor: pointer;">
+		</fieldset>
+	</form>
+	<div id="error_message"></div>
+
 </body>
 </html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Home Docente</title>
+    <link rel="stylesheet" th:href="@{/styles/style.css}">
+</head>
+<body>
+    <form th:action="@{/Logout}" method="post" style="position: fixed; top: 20px; right: 20px;">
+        <button type="submit" style="background-color: red;">Logout</button>
+    </form>
+    <h1>Docente HomePage</h1>
+    <p class="centered-message success">
+        Benvenuto, <strong th:text="${email}">Nome Docente</strong>!
+    </p>
+    <form th:action="@{/elenco-verbali}" method="get">
+        <button type="submit">Verbali</button>
+    </form>
+    <h2 style="margin-top: 40px;">Lista Corsi</h2>
+    <table border="1" style="margin-top: 20px;">
+        <thead>
+            <tr>
+                <th>Corsi</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="corso : ${corsi}">
+                <td>
+                    <a th:href="@{/home-docente(id_corso=${corso.IDCorso})}" th:text="${corso.nome}">Nome Corso</a>
+                    (<span th:text="${corso.cfu}">CFU</span> CFU)
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div th:if="${appelli != null}">
+        <h2>Appelli del Corso</h2>
+        <table border="1" th:if="${#lists.size(appelli) > 0}">
+            <thead>
+                <tr>
+                    <th>Data Appello</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="appello : ${appelli}">
+                    <td>
+                        <a th:href="@{/iscritti-appello(id_appello=${appello.IDAppello})}" th:text="${appello.data}">Data Appello</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div th:if="${#lists.size(appelli) == 0}" class="centered-message warning">
+            <p>Nessun appello disponibile per il corso selezionato.</p>
+        </div>
+    </div>
+</body>
+</html> 

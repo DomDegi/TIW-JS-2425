@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="stylesheet" th:href="@{/styles/style.css}">
+    <meta charset="UTF-8">
+    <title>Inserisci Valutazione</title>
+</head>
+<body>
+    <form th:action="@{/logout}" method="post" style="position: fixed; top: 20px; right: 20px;">
+        <button type="submit" style="background-color: red;">Logout</button>
+    </form>
+    
+    <h1>Inserisci Valutazione</h1>
+
+    <form th:action="@{'/inserisci-valutazione?id_studente=' + ${iscritto.IDStudente} + '&id_appello=' + ${iscritto.IDAppello}}" method="post">
+        <p>
+            <strong>Matricola:</strong> <span th:text="${iscritto.matricola}">123456</span>
+        </p>
+        <p>
+            <strong>Cognome:</strong> <span th:text="${iscritto.cognome}">Rossi</span>
+        </p>
+        <p>
+            <strong>Nome:</strong> <span th:text="${iscritto.nome}">Mario</span>
+        </p>
+        <p>
+            <strong>Email:</strong> <span th:text="${iscritto.email}">mario.rossi@email.it</span>
+        </p>
+        <p>
+            <strong>Corso di Laurea:</strong> <span th:text="${iscritto.corsolaurea}">Ingegneria Informatica</span>
+        </p>
+
+        <p>
+            <strong>Voto:</strong> 
+            <select name="voto" th:value="${iscritto.voto}">
+                <option value="">-- Seleziona voto --</option>
+                <option value="18">18</option>
+                <option value="19">19</option>
+                <option value="20">20</option>
+                <option value="21">21</option>
+                <option value="22">22</option>
+                <option value="23">23</option>
+                <option value="24">24</option>
+                <option value="25">25</option>
+                <option value="26">26</option>
+                <option value="27">27</option>
+                <option value="28">28</option>
+                <option value="29">29</option>
+                <option value="30">30</option>
+                <option value="30L">30L</option>
+                <option value="assente">Assente</option>
+                <option value="riprovato">Riprovato</option>
+            </select>
+        </p>
+
+        <p>
+            <strong>Stato Valutazione:</strong> <span th:text="${iscritto.statoDiValutazione}">Pubblicato</span>
+        </p>
+        
+        <button type="submit">Salva modifiche</button>
+        <p th:text="${error_message}" style="color: red;"></p>
+    </form>
+
+    <div style="margin-top: 20px;">
+        <a href="javascript:history.back()">Torna indietro</a>
+    </div>
+</body>
+</html> 

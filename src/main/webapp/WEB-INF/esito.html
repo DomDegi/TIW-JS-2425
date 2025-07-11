@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Esito Appello</title>
+    <link rel="stylesheet" th:href="@{/styles/style.css}">
+</head>
+<body>
+    <h1>Esito Appello</h1>
+    <div th:if="${erroreAppello != null}" class="centered-message error">
+        <p th:text="${erroreAppello}"></p>
+    </div>
+    <div th:if="${erroreAppello == null}">
+        <div th:if="${infoAppello.statoDiValutazione.name() == 'RIFIUTATO'}" class="centered-message warning">
+            <p><strong>Il voto è stato rifiutato.</strong><br>Se hai rifiutato per errore, contatta la segreteria.</p>
+        </div>
+        <div th:if="${infoAppello.statoDiValutazione.name() == 'PUBBLICATO' or infoAppello.statoDiValutazione.name() == 'VERBALIZZATO'}">
+            <!-- mostra i dati -->
+            <table>
+                <tr>
+                    <th class="label">Matricola</th>
+                    <td class="value" th:text="${infoAppello.matricola}">matricola</td>
+                </tr>
+                <tr>
+                    <th class="label">Nome</th>
+                    <td class="value" th:text="${infoAppello.nome}">nome</td>
+                </tr>
+                <tr>
+                    <th class="label">Cognome</th>
+                    <td class="value" th:text="${infoAppello.cognome}">cognome</td>
+                </tr>
+                <tr>
+                    <th class="label">Email</th>
+                    <td class="value" th:text="${infoAppello.email}">email</td>
+                </tr>
+                <tr>
+                    <th class="label">Corso di Laurea</th>
+                    <td class="value" th:text="${infoAppello.corsolaurea}">corso laurea</td>
+                </tr>
+                <tr>
+                    <th class="label">Corso</th>
+                    <td class="value" th:text="${infoAppello.nomeCorso}">nome corso</td>
+                </tr>
+                <tr>
+                    <th class="label">Data Appello</th>
+                    <td class="value" th:text="${#dates.format(infoAppello.data, 'dd/MM/yyyy')}">data</td>
+                </tr>
+                <tr>
+                    <th class="label">Voto</th>
+                    <td class="value">
+                        <span th:text="${infoAppello.voto}">voto</span>
+                    </td>
+                </tr>
+                <tr>
+                    <th class="label">Stato Valutazione</th>
+                    <td class="value" th:text="${infoAppello.statoDiValutazione}">stato</td>
+                </tr>
+            </table>
+            <div th:if="${#lists.contains({'18','19','20','21','22','23','24','25','26','27','28','29','30','30L'}, infoAppello.voto)} and ${infoAppello.statoDiValutazione.name() == 'PUBBLICATO'}" style="text-align:center; margin: 24px 0 0 0;">
+                <form th:action="@{/esito}" method="post" style="display:inline-block;">
+                    <input type="hidden" name="id_appello" th:value="${infoAppello.idAppello}" />
+                    <button type="submit" class="button red">Rifiuta voto</button>
+                </form>
+            </div>
+        </div>
+        <div th:if="${infoAppello.statoDiValutazione.name() != 'PUBBLICATO' and infoAppello.statoDiValutazione.name() != 'VERBALIZZATO' and infoAppello.statoDiValutazione.name() != 'RIFIUTATO'}" class="centered-message warning">
+            <p><strong>Voto non ancora definito</strong><br>Il docente non ha ancora pubblicato il risultato per questo appello.</p>
+        </div>
+    </div>
+    <div style="text-align:center; margin-top: 30px;">
+        <a th:href="@{/home-studente}" class="button">Torna alla Home Studente</a>
+    </div>
+</body>
+</html> 

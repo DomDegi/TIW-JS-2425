@@ -1,0 +1,158 @@
+/* Stile generale */
+body {
+    background-color: #f5f5f5;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    color: #2c3e50;
+}
+
+h1, h2 {
+    color: #2c3e50;
+    margin-top: 20px;
+    text-align: center;
+}
+
+.section {
+    margin-bottom: 30px;
+}
+
+.centered-message {
+    text-align: center;
+    font-size: 1.2em;
+    margin: 30px auto 20px auto;
+    padding: 18px 0;
+    border-radius: 8px;
+    width: 80%;
+    background: #eaf6fb;
+    box-shadow: 0 2px 8px rgba(44,62,80,0.07);
+}
+.centered-message.success {
+    background: #e8fbe8;
+    color: #217a21;
+    font-weight: 600;
+}
+.centered-message.warning {
+    background: #fff3cd;
+    color: #856404;
+    font-weight: 600;
+}
+.centered-message.error {
+    background: #fbeaea;
+    color: #b52a2a;
+    font-weight: 600;
+}
+
+/* Tabelle */
+table {
+    width: 90%;
+    border-collapse: collapse;
+    margin: 20px auto 0 auto;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(44,62,80,0.07);
+}
+th, td {
+    border: 1px solid #aaa;
+    padding: 10px 20px;
+    text-align: left;
+}
+th {
+    background: #3498db;
+    color: #fff;
+    font-weight: 600;
+}
+tr:nth-child(even) td {
+    background: #f0f6fa;
+}
+
+.label {
+    font-weight: bold;
+    color: #2c3e50;
+}
+.value {
+    color: #333;
+}
+
+/* Bottoni */
+.button, button, input[type="submit"] {
+    background: #2980b9;
+    color: #fff;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    margin: 18px 10px 0 0;
+    transition: background 0.2s;
+    display: inline-block;
+}
+.button:hover, button:hover, input[type="submit"]:hover {
+    background: #1f6391;
+}
+.button.red, button.red, input[type="submit"].red {
+    background: #e74c3c;
+    color: #fff;
+}
+.button.red:hover, button.red:hover, input[type="submit"].red:hover {
+    background: #c0392b;
+}
+
+/* Login */
+.login-container {
+    max-width: 350px;
+    margin: 60px auto;
+    background: #fff;
+    padding: 32px 28px 24px 28px;
+    border-radius: 10px;
+    box-shadow: 0 2px 16px rgba(44,62,80,0.13);
+}
+.login-container h1 {
+    margin-bottom: 24px;
+    text-align: center;
+}
+.login-container input[type="text"],
+.login-container input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0 16px 0;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    font-size: 1em;
+}
+.login-container button {
+    width: 100%;
+}
+
+/* Logout button */
+form[method="post"] button[style*="background-color: red"] {
+    background: #e74c3c;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    position: relative;
+    top: 0;
+    right: 0;
+    transition: background 0.2s;
+    margin: 0 0 0 10px;
+}
+form[method="post"] button[style*="background-color: red"]:hover {
+    background: #c0392b;
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+    table, th, td {
+        font-size: 0.95em;
+        padding: 7px 8px;
+    }
+    .login-container {
+        max-width: 95vw;
+        padding: 18px 8px 12px 8px;
+    }
+    .centered-message {
+        width: 98%;
+        font-size: 1em;
+    }
+} 

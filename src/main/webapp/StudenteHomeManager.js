@@ -1,9 +1,8 @@
 (function() {
 	let pageOrchestrator = new PageOrchestrator();
-	let contextPath = '/' + window.location.pathname.split('/')[1];
 
 	window.addEventListener("load", () => {
-		if (sessionStorage.getItem("email") == null || !(sessionStorage.getItem("role") === undefined || sessionStorage.getItem("role") === null || sessionStorage.getItem("role") === "studente")) {
+		if (sessionStorage.getItem("email") == null || sessionStorage.getItem("role") != "studente") {
 			window.location.href = "index.html";
 		} else {
 			//display initial content
@@ -27,7 +26,7 @@
 		};
 		this.show = function() {
 			var self = this;
-			makeCall("GET", contextPath + "/home-studente", null,
+			makeCall("GET", "home-studente", null,
 				function(req) {
 					if (req.readyState == XMLHttpRequest.DONE) {
 						if (req.status === 401) {
@@ -84,7 +83,7 @@
 		this.show = function(corsoId) {
 			this.reset();
 			let self = this;
-			makeCall("GET", contextPath + "/home-studente?id_corso=" + corsoId, null, (req) => {
+			makeCall("GET", "home-studente?id_corso=" + corsoId, null, (req) => {
 				if (req.readyState === XMLHttpRequest.DONE) {
 					if (req.status === 401) {
 						window.location.href = "index.html";
@@ -140,7 +139,7 @@
 
 			document.getElementById("corsiSection").style.display = "none";
 			document.getElementById("appelliSection").style.display = "none";
-			makeCall("GET", contextPath + "/esito?appelloId=" + appelloId, null, (req) => {
+			makeCall("GET", "esito?appelloId=" + appelloId + "&id_corso=" + corsoId, null, (req) => {
 				if (req.readyState === XMLHttpRequest.DONE) {
 					if (req.status === 200) {
 						const esito = JSON.parse(req.responseText);
@@ -245,7 +244,7 @@
 
 			this.rifiutaButton.disabled = true; // previeni doppio click
 
-			makeCall("POST", contextPath + "/esito?appelloId=" + this.currentAppelloId, null, (req) => {
+			makeCall("POST", "esito?appelloId=" + this.currentAppelloId + "&id_corso=" + this.currentCorsoId, null, (req) => {
 				if (req.readyState === XMLHttpRequest.DONE) {
 					if (req.status === 200) {
 						// Ricarica i dati dell'esito per mostrare lo stato aggiornato

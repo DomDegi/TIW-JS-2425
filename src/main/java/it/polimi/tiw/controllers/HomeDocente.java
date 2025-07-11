@@ -37,7 +37,9 @@ public class HomeDocente extends HttpServlet {
         HttpSession session = request.getSession(false);
         DocenteBean docente = (session != null) ? (DocenteBean) session.getAttribute("utente") : null;
         if (session == null || docente == null) {
-            response.sendRedirect("../login.html");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"Not authenticated\"}");
             return;
         }
 

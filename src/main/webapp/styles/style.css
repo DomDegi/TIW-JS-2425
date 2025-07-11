@@ -155,4 +155,8 @@ form[method="post"] button[style*="background-color: red"]:hover {
         width: 98%;
         font-size: 1em;
     }
+}
+
+.cliccabile {
+    cursor: pointer;
 } 

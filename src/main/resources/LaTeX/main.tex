@@ -352,30 +352,22 @@ ordinati on modo alfabetico crescente per nome del corso e poi per data crescent
     \item DocenteBean
     \item CorsoBean
     \item AppelloBean
-    \item IscrizioneBean
+    \item IscrittiBean
     \item VerbaleBean
+    \item StudenteAppelloBean
+    \item DocenteVerbaleBean
 \end{itemize}
 \textbf{Controllers (servlets)}
 \begin{itemize}
-    \item Frontend
-    \begin{itemize}
-        \item LoginServlet
-        \item HomeServlet
-        \item ModificaVotoServlet
-        \item EsitoStudenteServlet
-        \item VerbaliServlet
-        \item VerbaleDettaglioServlet
-        \item IscrittiAppelloServlet
-    \end{itemize}
-    \item Backend
-    \begin{itemize}
-        \item AutenticazioneServlet
-        \item LogoutServlet
-        \item SalvaVotoServlet
-        \item VerbalizzaServlet
-        \item PubblicaServlet
-        \item RifiutaVotoServlet
-    \end{itemize}
+    \item CheckLogin
+    \item InserisciValutazione
+    \item EsitoStudente
+    \item ElencoVerbali
+    \item PaginaVerbale
+    \item Iscritti
+    \item Logout
+    \item HomeStudente
+    \item HomeDocente
 \end{itemize}
 
 % --- Fine colonna sinistra ---
@@ -386,12 +378,12 @@ ordinati on modo alfabetico crescente per nome del corso e poi per data crescent
 \textbf{Views (templates)}
 \begin{itemize}
     \item login
-    \item homeStudente
-    \item homeDocente
-    \item iscrittiAppello
+    \item home-studente
+    \item home-docente
+    \item iscritti-appello
     \item valutazione
     \item verbale
-    \item verbali
+    \item elenco-verbali
     \item esito
 \end{itemize}
 \textbf{Data Access Objects (classes)}
@@ -403,20 +395,19 @@ ordinati on modo alfabetico crescente per nome del corso e poi per data crescent
     \item DocenteDAO
     \begin{itemize}
             \item corsi
-            \item appelli
             \item verbali
     \end{itemize}
     \item StudenteDAO
     \begin{itemize}
             \item corsi
+            \item appelli
             \item valutazioni
         \end{itemize}
-    \item IscrizioneDAO
+    \item ValutazioneDAO
     \begin{itemize}
             \item stato valutazioni
             \item generazione verbale
             \item voti
-            \item iscrizioni a un appello
     \end{itemize}
 \end{itemize}
 % --- Fine colonna destra ---

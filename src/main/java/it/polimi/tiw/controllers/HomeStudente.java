@@ -35,18 +35,15 @@ public class HomeStudente extends HttpServlet {
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        UtenteBean utente = (session != null) ? (UtenteBean) session.getAttribute("utente") : null;
-        if (session == null || utente == null) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType("application/json");
-            response.getWriter().write("{\"error\":\"Not authenticated\"}");
+        if (session == null || session.getAttribute("utente") == null) {
+            response.sendRedirect(request.getContextPath() + "/index.html");
             return;
         }
-
-        if (!(utente instanceof it.polimi.tiw.beans.StudenteBean)) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        UtenteBean utente = (UtenteBean) session.getAttribute("utente");
+        if (!utente.getRuolo().equals("studente")) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.setContentType("application/json");
-            response.getWriter().write("{\"error\":\"Not authenticated\"}");
+            response.getWriter().write("{\"error\":\"Utente non autorizzato\"}");
             return;
         }
 
@@ -73,8 +70,13 @@ public class HomeStudente extends HttpServlet {
             }
         } catch (NumberFormatException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid id_corso");
+            return;
         } catch (SQLException e) {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
+            return;
+        } catch (Exception e) {
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Errore interno del server");
+            return;
         }
     }
 

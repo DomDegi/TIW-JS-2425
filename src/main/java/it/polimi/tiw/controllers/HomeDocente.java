@@ -19,6 +19,7 @@ import com.google.gson.GsonBuilder;
 import it.polimi.tiw.beans.AppelloBean;
 import it.polimi.tiw.beans.CorsoBean;
 import it.polimi.tiw.beans.DocenteBean;
+import it.polimi.tiw.beans.UtenteBean;
 import it.polimi.tiw.dao.CorsoDAO;
 import it.polimi.tiw.dao.DocenteDAO;
 import it.polimi.tiw.utilities.DBConnection;
@@ -35,13 +36,18 @@ public class HomeDocente extends HttpServlet {
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        DocenteBean docente = (session != null) ? (DocenteBean) session.getAttribute("utente") : null;
-        if (session == null || docente == null) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType("application/json");
-            response.getWriter().write("{\"error\":\"Not authenticated\"}");
+        if (session == null || session.getAttribute("utente") == null) {
+            response.sendRedirect(request.getContextPath() + "/index.html");
             return;
         }
+        UtenteBean utente = (UtenteBean) session.getAttribute("utente");
+        if (!utente.getRuolo().equals("docente")) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"Utente non autorizzato\"}");
+            return;
+        }
+        DocenteBean docente = (DocenteBean) utente;
 
         String idCorsoParam = request.getParameter("id_corso");
         Gson gson = new GsonBuilder().create();
@@ -72,8 +78,13 @@ public class HomeDocente extends HttpServlet {
             }
         } catch (NumberFormatException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid id_corso");
+            return;
         } catch (SQLException e) {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
+            return;
+        } catch (Exception e) {
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Errore interno del server");
+            return;
         }
     }
 

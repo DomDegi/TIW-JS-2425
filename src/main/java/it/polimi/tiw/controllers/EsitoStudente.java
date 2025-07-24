@@ -31,11 +31,15 @@ public class EsitoStudente extends HttpServlet {
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        UtenteBean utente = (session != null) ? (UtenteBean) session.getAttribute("utente") : null;
-        if (session == null || utente == null) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        if (session == null || session.getAttribute("utente") == null) {
+            response.sendRedirect(request.getContextPath() + "/index.html");
+            return;
+        }
+        UtenteBean utente = (UtenteBean) session.getAttribute("utente");
+        if (!utente.getRuolo().equals("studente")) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.setContentType("application/json");
-            response.getWriter().write("{\"error\":\"Not authenticated\"}");
+            response.getWriter().write("{\"error\":\"Utente non autorizzato\"}");
             return;
         }
         String appelloIdParam = request.getParameter("appelloId");
@@ -52,6 +56,9 @@ public class EsitoStudente extends HttpServlet {
             infoAppello = studenteDAO.getInfoAppello(appelloId);
         } catch (SQLException e) {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Impossibile recuperare l'esito dell'appello");
+            return;
+        } catch (Exception e) {
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Errore interno del server");
             return;
         }
         // Converti il bean in una mappa per gestire le date come stringhe
@@ -87,11 +94,15 @@ public class EsitoStudente extends HttpServlet {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        UtenteBean utente = (session != null) ? (UtenteBean) session.getAttribute("utente") : null;
-        if (session == null || utente == null) {
+        if (session == null || session.getAttribute("utente") == null) {
+            response.sendRedirect(request.getContextPath() + "/index.html");
+            return;
+        }
+        UtenteBean utente = (UtenteBean) session.getAttribute("utente");
+        if (!utente.getRuolo().equals("studente")) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
-            response.getWriter().write("{\"error\":\"Not authenticated\"}");
+            response.getWriter().write("{\"error\":\"Utente non autorizzato\"}");
             return;
         }
         String appelloIdParam = request.getParameter("appelloId");
@@ -107,6 +118,9 @@ public class EsitoStudente extends HttpServlet {
             studenteDAO.setRifiutato(appelloId);
         } catch (SQLException e) {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Impossibile rifiutare il voto");
+            return;
+        } catch (Exception e) {
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Errore interno del server");
             return;
         }
         doGet(request, response);

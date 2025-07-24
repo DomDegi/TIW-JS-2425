@@ -34,12 +34,12 @@ public class InserisciValutazione extends HttpServlet {
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("utente") == null) {
-            response.sendRedirect("index.html");
+            response.sendRedirect(request.getContextPath() + "/index.html");
             return;
         }
         UtenteBean utente = (UtenteBean) session.getAttribute("utente");
         if (!utente.getRuolo().equals("docente")) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.setContentType("application/json");
             response.getWriter().write("{\"error\": \"Utente non autorizzato\"}");
             return;
@@ -77,8 +77,11 @@ public class InserisciValutazione extends HttpServlet {
             response.setCharacterEncoding("UTF-8");
             response.getWriter().write(json);
         } catch (SQLException e) {
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                    "Impossibile recuperare i dati di questo studente per questo appello");
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Impossibile recuperare i dati di questo studente per questo appello");
+            return;
+        } catch (Exception e) {
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Errore interno del server");
+            return;
         }
     }
 
@@ -86,12 +89,12 @@ public class InserisciValutazione extends HttpServlet {
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("utente") == null) {
-            response.sendRedirect("index.html");
+            response.sendRedirect(request.getContextPath() + "/index.html");
             return;
         }
         UtenteBean utente = (UtenteBean) session.getAttribute("utente");
         if (!utente.getRuolo().equals("docente")) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.setContentType("application/json");
             response.getWriter().write("{\"error\": \"Utente non autorizzato\"}");
             return;
@@ -140,6 +143,10 @@ public class InserisciValutazione extends HttpServlet {
             response.getWriter().write("{\"success\": true}");
         } catch (SQLException e) {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Impossibile modificare il voto");
+            return;
+        } catch (Exception e) {
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Errore interno del server");
+            return;
         }
     }
 } 

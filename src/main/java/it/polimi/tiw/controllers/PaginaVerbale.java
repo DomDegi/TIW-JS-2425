@@ -23,6 +23,7 @@ import com.google.gson.GsonBuilder;
 import it.polimi.tiw.beans.IscrittiBean;
 import it.polimi.tiw.beans.VerbaleBean;
 import it.polimi.tiw.beans.DocenteBean;
+import it.polimi.tiw.beans.UtenteBean;
 import it.polimi.tiw.dao.AppelloDAO;
 import it.polimi.tiw.dao.ValutazioneDAO;
 import it.polimi.tiw.utilities.DBConnection;
@@ -46,13 +47,18 @@ public class PaginaVerbale extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("utente") == null || !(session.getAttribute("utente") instanceof DocenteBean)) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        if (session == null || session.getAttribute("utente") == null) {
+            response.sendRedirect(request.getContextPath() + "/index.html");
+            return;
+        }
+        UtenteBean utente = (UtenteBean) session.getAttribute("utente");
+        if (!utente.getRuolo().equals("docente")) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.setContentType("application/json");
             response.getWriter().write("{\"error\": \"Utente non autorizzato\"}");
             return;
         }
-        DocenteBean docente = (DocenteBean) session.getAttribute("utente");
+        DocenteBean docente = (DocenteBean) utente;
 
         String id_appello_param = request.getParameter("id_appello");
         int id_appello;
@@ -85,12 +91,18 @@ public class PaginaVerbale extends HttpServlet {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                     "Errore nel cercare gli ID degli studenti da aggiornare.");
             return;
+        } catch (Exception e) {
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Errore interno del server");
+            return;
         }
         try {
             valutazioneDAO.aggiornaVerbalizzato();
         } catch (SQLException e) {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                     "Errore durante l'aggiornamento dei dati come verbalizzati.");
+            return;
+        } catch (Exception e) {
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Errore interno del server");
             return;
         }
         List<IscrittiBean> studentiAggiornati = new ArrayList<>();
@@ -115,6 +127,9 @@ public class PaginaVerbale extends HttpServlet {
         } catch (SQLException e) {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                     "Errore nel recuperare le informazioni degli studenti aggiornati.");
+            return;
+        } catch (Exception e) {
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Errore interno del server");
             return;
         }
         try {

@@ -52,7 +52,7 @@ public class DocenteChecker implements Filter {
         UtenteBean utente = (UtenteBean) session.getAttribute("utente");
         if (utente == null || !(utente.getRuolo().equals("docente"))) {
             if (isAjax) {
-                res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                res.setStatus(HttpServletResponse.SC_FORBIDDEN);
                 res.setContentType("application/json");
                 res.getWriter().write("{\"error\": \"Utente non autorizzato\"}");
             } else {

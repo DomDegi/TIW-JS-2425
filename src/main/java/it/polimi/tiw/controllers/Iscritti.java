@@ -17,6 +17,7 @@ import com.google.gson.GsonBuilder;
 
 import it.polimi.tiw.beans.IscrittiBean;
 import it.polimi.tiw.beans.DocenteBean;
+import it.polimi.tiw.beans.UtenteBean;
 import it.polimi.tiw.dao.AppelloDAO;
 import it.polimi.tiw.utilities.DBConnection;
 
@@ -32,13 +33,18 @@ public class Iscritti extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("utente") == null || !(session.getAttribute("utente") instanceof DocenteBean)) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        if (session == null || session.getAttribute("utente") == null) {
+            response.sendRedirect(request.getContextPath() + "/index.html");
+            return;
+        }
+        UtenteBean utente = (UtenteBean) session.getAttribute("utente");
+        if (!utente.getRuolo().equals("docente")) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.setContentType("application/json");
             response.getWriter().write("{\"error\": \"Utente non autorizzato\"}");
             return;
         }
-        DocenteBean docente = (DocenteBean) session.getAttribute("utente");
+        DocenteBean docente = (DocenteBean) utente;
 
         String idAppelloParam = request.getParameter("id_appello");
         int id_appello;
@@ -77,19 +83,28 @@ public class Iscritti extends HttpServlet {
         } catch (SQLException e) {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                     "Impossibile recuperare gli iscritti a questo appello");
+            return;
+        } catch (Exception e) {
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Errore interno del server");
+            return;
         }
     }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("utente") == null || !(session.getAttribute("utente") instanceof DocenteBean)) {
+        if (session == null || session.getAttribute("utente") == null) {
+            response.sendRedirect(request.getContextPath() + "/index.html");
+            return;
+        }
+        UtenteBean utente = (UtenteBean) session.getAttribute("utente");
+        if (!utente.getRuolo().equals("docente")) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.getWriter().write("{\"error\": \"Utente non autorizzato\"}");
             return;
         }
-        DocenteBean docente = (DocenteBean) session.getAttribute("utente");
+        DocenteBean docente = (DocenteBean) utente;
 
         String idAppelloParam = request.getParameter("id_appello");
         int id_appello;
@@ -117,6 +132,10 @@ public class Iscritti extends HttpServlet {
 
         } catch (SQLException e) {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Impossibile pubblicare i voti");
+            return;
+        } catch (Exception e) {
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Errore interno del server");
+            return;
         }
     }
 } 

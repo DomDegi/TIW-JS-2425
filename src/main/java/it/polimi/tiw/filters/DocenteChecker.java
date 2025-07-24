@@ -50,7 +50,7 @@ public class DocenteChecker implements Filter {
         }
 
         UtenteBean utente = (UtenteBean) session.getAttribute("utente");
-        if (utente == null || !(utente instanceof DocenteBean)) {
+        if (utente == null || !(utente.getRuolo().equals("docente"))) {
             if (isAjax) {
                 res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 res.setContentType("application/json");

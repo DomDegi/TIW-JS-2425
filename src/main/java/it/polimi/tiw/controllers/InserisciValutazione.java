@@ -16,6 +16,7 @@ import com.google.gson.Gson;
 
 import it.polimi.tiw.beans.StudenteAppelloBean;
 import it.polimi.tiw.beans.DocenteBean;
+import it.polimi.tiw.beans.UtenteBean;
 import it.polimi.tiw.dao.AppelloDAO;
 import it.polimi.tiw.dao.StudenteDAO;
 import it.polimi.tiw.utilities.DBConnection;
@@ -32,13 +33,18 @@ public class InserisciValutazione extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("utente") == null || !(session.getAttribute("utente") instanceof DocenteBean)) {
+        if (session == null || session.getAttribute("utente") == null) {
+            response.sendRedirect("index.html");
+            return;
+        }
+        UtenteBean utente = (UtenteBean) session.getAttribute("utente");
+        if (!utente.getRuolo().equals("docente")) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.getWriter().write("{\"error\": \"Utente non autorizzato\"}");
             return;
         }
-        DocenteBean docente = (DocenteBean) session.getAttribute("utente");
+        DocenteBean docente = (DocenteBean) utente;
 
         String id_studente_param = request.getParameter("id_studente");
         String id_appello_param = request.getParameter("id_appello");
@@ -79,13 +85,18 @@ public class InserisciValutazione extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("utente") == null || !(session.getAttribute("utente") instanceof DocenteBean)) {
+        if (session == null || session.getAttribute("utente") == null) {
+            response.sendRedirect("index.html");
+            return;
+        }
+        UtenteBean utente = (UtenteBean) session.getAttribute("utente");
+        if (!utente.getRuolo().equals("docente")) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.getWriter().write("{\"error\": \"Utente non autorizzato\"}");
             return;
         }
-        DocenteBean docente = (DocenteBean) session.getAttribute("utente");
+        DocenteBean docente = (DocenteBean) utente;
 
         String id_studente_param = request.getParameter("id_studente");
         String id_appello_param = request.getParameter("id_appello");

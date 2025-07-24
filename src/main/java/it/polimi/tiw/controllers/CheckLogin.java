@@ -62,10 +62,10 @@ public class CheckLogin extends HttpServlet {
             response.setContentType("application/json");
             Gson gson = new Gson();
             JsonObject json = gson.toJsonTree(utente).getAsJsonObject();
-            if (utente instanceof StudenteBean) {
-                json.addProperty("role", "studente");
-            } else if (utente instanceof DocenteBean) {
-                json.addProperty("role", "docente");
+            switch (utente.getRuolo()) {
+            	case "studente" -> json.addProperty("role", "studente");
+            	case "docente" -> json.addProperty("role", "docente");
+                default -> throw new IllegalStateException("Ruolo sconosciuto: " + utente.getRuolo());
             }
             response.getWriter().println(json.toString());
         }

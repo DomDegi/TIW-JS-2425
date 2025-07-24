@@ -1,6 +1,6 @@
 package it.polimi.tiw.beans;
 
-public class StudenteBean extends UtenteBean {
+public final class StudenteBean extends UtenteBean{
 	
 	private String matricola;
 	private String corso_laurea;
@@ -18,5 +18,8 @@ public class StudenteBean extends UtenteBean {
 	
 	public String getCorsoLaurea() { return corso_laurea; }
 	public void setCorsoLaurea(String corso_laurea) { this.corso_laurea = corso_laurea; }
+	
+	@Override
+	public String getRuolo() { return "studente"; }
 }
 

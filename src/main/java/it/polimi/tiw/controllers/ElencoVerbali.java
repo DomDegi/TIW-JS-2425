@@ -16,6 +16,7 @@ import com.google.gson.GsonBuilder;
 
 import it.polimi.tiw.beans.DocenteVerbaleBean;
 import it.polimi.tiw.beans.DocenteBean;
+import it.polimi.tiw.beans.UtenteBean;
 import it.polimi.tiw.dao.DocenteDAO;
 import it.polimi.tiw.utilities.DBConnection;
 
@@ -34,13 +35,18 @@ public class ElencoVerbali extends HttpServlet {
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("utente") == null || !(session.getAttribute("utente") instanceof DocenteBean)) {
+        if (session == null || session.getAttribute("utente") == null) {
+            response.sendRedirect("index.html");
+            return;
+        }
+        UtenteBean utente = (UtenteBean) session.getAttribute("utente");
+        if (!utente.getRuolo().equals("docente")) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.getWriter().write("{\"error\": \"Utente non autorizzato\"}");
             return;
         }
-        DocenteBean docente = (DocenteBean) session.getAttribute("utente");
+        DocenteBean docente = (DocenteBean) utente;
         DocenteDAO docenteDAO = new DocenteDAO(connection, docente.getIDUtente());
         try {
             List<DocenteVerbaleBean> infoVerbale = docenteDAO.cercaVerbali();

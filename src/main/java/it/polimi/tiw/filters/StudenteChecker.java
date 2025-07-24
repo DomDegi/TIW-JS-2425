@@ -61,7 +61,7 @@ public class StudenteChecker implements Filter {
         }
 
         UtenteBean utente = (UtenteBean) session.getAttribute("utente");
-        if (utente == null || !(utente instanceof StudenteBean)) {
+        if (utente == null || !(utente.getRuolo().equals("studente"))) {
             if (isAjax) {
                 res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 res.setContentType("application/json");

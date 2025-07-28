@@ -23,7 +23,6 @@ function makeCall(method, url, formElement, callback) {
     }
 }
 
-// Funzione per aggiungere un pulsante di navigazione unico
 function addUniqueNavButton(container, buttonId, buttonText, clickHandler) {
     // Rimuovi il pulsante esistente se presente
     const existingButton = document.getElementById(buttonId);
@@ -31,7 +30,6 @@ function addUniqueNavButton(container, buttonId, buttonText, clickHandler) {
         existingButton.remove();
     }
     
-    // Crea il nuovo pulsante
     const button = document.createElement("button");
     button.id = buttonId;
     button.textContent = buttonText;

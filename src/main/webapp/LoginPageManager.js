@@ -11,9 +11,9 @@
                         sessionStorage.setItem('nome', userData.nome || '');
                         sessionStorage.setItem('cognome', userData.cognome || '');
                         // Redirect in base al ruolo
-                        if (userData.role === "studente" || userData.tipo === "studente") {
+                        if (userData.role === "studente") {
                             window.location.href = "home-studente.html";
-                        } else if (userData.role === "docente" || userData.tipo === "docente") {
+                        } else if (userData.role === "docente") {
                             window.location.href = "home-docente.html";
                         } else {
                             document.getElementById("error_message").textContent = "Ruolo sconosciuto.";

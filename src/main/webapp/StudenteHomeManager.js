@@ -27,7 +27,7 @@
 		});
 	}, false);
 
-	// Funzione per formattare gli stati di valutazione
+	// Funzione per formattare gli stati di valutazione (toglie il _ da NON_INSERITO)
 	function formatStatoValutazione(stato) {
 		if (!stato) return '-';
 		return stato.replace('_', ' ');

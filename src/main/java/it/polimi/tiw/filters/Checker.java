@@ -13,25 +13,18 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-/**
- * Filter per l'autenticazione degli utenti
- * Controlla che l'utente sia autenticato prima di accedere alle pagine protette
- */
+
 public class Checker implements Filter {
 
     /**
      * Default constructor.
      */
-    public Checker() {
-        // TODO Auto-generated constructor stub
-    }
+    public Checker() {}
 
     /**
      * @see Filter#destroy()
      */
-    public void destroy() {
-        // TODO Auto-generated constructor stub
-    }
+    public void destroy() {}
 
     /**
      * @see Filter#doFilter(ServletRequest, ServletResponse, FilterChain)
@@ -60,7 +53,5 @@ public class Checker implements Filter {
     /**
      * @see Filter#init(FilterConfig)
      */
-    public void init(FilterConfig fConfig) throws ServletException {
-        // TODO Auto-generated constructor stub
-    }
+    public void init(FilterConfig fConfig) throws ServletException {}
 } 

@@ -14,19 +14,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-/**
- * Filter per l'autorizzazione dei docenti
- * Consente l'accesso solo se l'utente in sessione è un DocenteBean
- */
 public class DocenteChecker implements Filter {
 
-    public DocenteChecker() {
-        // Costruttore di default
-    }
+    public DocenteChecker() {}
 
-    public void destroy() {
-        // Nessuna risorsa da liberare
-    }
+    public void destroy() {}
 
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
@@ -61,12 +53,9 @@ public class DocenteChecker implements Filter {
             return;
         }
 
-        // Qui sei sicuro che è un docente autenticato
         System.out.println("Docente autenticato: " + utente.getEmail());
         chain.doFilter(request, response);
     }
 
-    public void init(FilterConfig fConfig) throws ServletException {
-        // Nessuna inizializzazione necessaria
-    }
+    public void init(FilterConfig fConfig) throws ServletException {}
 } 

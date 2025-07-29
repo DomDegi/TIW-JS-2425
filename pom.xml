@@ -18,22 +18,19 @@
     </properties>
 
     <dependencies>
-        <!-- Servlet API (provided by the container: Tomcat, etc.) -->
+
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
             <version>6.0.0</version>
             <scope>provided</scope>
         </dependency>
-
-        <!-- JDBC MySQL connector -->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>8.0.33</version>
         </dependency>
 
-        <!-- JSTL (opzionale, utile se usi tag JSP) -->
         <dependency>
             <groupId>jakarta.servlet.jsp.jstl</groupId>
             <artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
@@ -62,7 +59,6 @@
     <build>
         <finalName>tiw-js</finalName>
         <plugins>
-            <!-- Compilatore -->
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
@@ -71,8 +67,6 @@
                     <target>${maven.compiler.target}</target>
                 </configuration>
             </plugin>
-
-            <!-- Plugin WAR per generare un archivio deployabile su Tomcat -->
             <plugin>
                 <artifactId>maven-war-plugin</artifactId>
                 <version>3.3.2</version>

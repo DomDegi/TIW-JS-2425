@@ -12,8 +12,6 @@
 		const cognome = sessionStorage.getItem("cognome") || "";
 		const nomeCompleto = nome && cognome ? `${nome} ${cognome}` : sessionStorage.getItem("email");
 		document.getElementById("username").textContent = nomeCompleto;
-		
-		// Capitalizza il ruolo per la visualizzazione
 		const role = sessionStorage.getItem("role") || "";
 		const roleCapitalized = role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
 		const roleElement = document.getElementById("role");
@@ -26,7 +24,6 @@
 		});
 	}, false);
 
-	// Funzione per formattare gli stati di valutazione
 	function formatStatoValutazione(stato) {
 		if (!stato) return '-';
 		return stato.replace('_', ' ');
@@ -173,8 +170,6 @@
 				row.appendChild(azioniCell);
 				this.iscrittiBody.appendChild(row);
 			});
-			
-			// Aggiorna lo stato dei pulsanti
 			this.updateButtonStates();
 		};
 		
@@ -189,25 +184,15 @@
 				inserimentoMultiploBtn.disabled = true;
 				return;
 			}
-			
-			// Conta gli studenti per ogni stato
 			const stati = this.iscrittiList.reduce((acc, studente) => {
 				const stato = studente.statoDiValutazione;
 				acc[stato] = (acc[stato] || 0) + 1;
 				return acc;
 			}, {});
-			
-			// Pubblica: abilita se ci sono studenti INSERITO
 			pubblicaButton.disabled = !stati["INSERITO"] || stati["INSERITO"] === 0;
-			
-			// Verbalizza: abilita se ci sono studenti PUBBLICATO o RIFIUTATO
 			const studentiVerbalizzabili = (stati["PUBBLICATO"] || 0) + (stati["RIFIUTATO"] || 0);
 			verbalizzaButton.disabled = studentiVerbalizzabili === 0;
-			
-			// Inserimento multiplo: abilita se ci sono studenti NON INSERITO
 			inserimentoMultiploBtn.disabled = !stati["NON_INSERITO"] || stati["NON_INSERITO"] === 0;
-			
-			// Aggiungi tooltip o messaggio informativo per il pulsante verbalizza
 			if (verbalizzaButton.disabled) {
 				verbalizzaButton.title = "Nessuno studente con voto pubblicato o rifiutato da verbalizzare";
 			} else {
@@ -292,7 +277,6 @@
 		document.getElementById("appelliSection").style.display = "none";
 		document.getElementById("iscrittiSection").style.display = "none";
 		document.getElementById("modificaStudenteSection").style.display = "block";
-		// Show home button when modifying student
 		document.getElementById("homeButton").style.display = "block";
 		makeCall("GET", "inserisci-valutazione?id_studente=" + iscritto.id_studente + "&id_appello=" + iscritto.id_appello, null, function(req) {
 			if (req.readyState == XMLHttpRequest.DONE) {
@@ -321,7 +305,6 @@
 		document.getElementById("iscrittiSection").style.display = "none";
 		const verbaleSection = document.getElementById('verbaleSection');
 		verbaleSection.style.display = 'block';
-		// Show home button when viewing verbale
 		document.getElementById("homeButton").style.display = "block";
 		
 		document.getElementById('verbaleId').textContent = verbale.id_verbale || '-';
@@ -363,7 +346,6 @@
 					const verbali = JSON.parse(req.responseText);
 					verbali.forEach(verbale => {
 						let row = document.createElement("tr");
-						// Handle the fields from DocenteVerbaleBean
 						let cellCorso = document.createElement("td");
 						cellCorso.textContent = verbale.nome_corso || verbale.nomeCorso || '-';
 						row.appendChild(cellCorso);
@@ -395,7 +377,6 @@
 			this.iscritti = new Iscritti(document.getElementById("iscrittiSection"), document.getElementById("iscrittiBody"));
 			this.iscritti.attachSortHandlers();
 			
-			// Home button event handler
 			document.getElementById("homeButton").addEventListener("click", () => {
 				this.showCorsiSection();
 			});
@@ -404,14 +385,10 @@
 					document.getElementById("message").textContent = "Nessun appello selezionato.";
 					return;
 				}
-				
-				// Controlla se ci sono studenti da verbalizzare
 				if (!this.iscritti.iscrittiList || this.iscritti.iscrittiList.length === 0) {
 					document.getElementById("message").textContent = "Nessuno studente da verbalizzare.";
 					return;
 				}
-				
-				// Conta gli studenti che possono essere verbalizzati
 				const studentiVerbalizzabili = this.iscritti.iscrittiList.filter(s => 
 					s.statoDiValutazione === "PUBBLICATO" || s.statoDiValutazione === "RIFIUTATO"
 				);
@@ -496,8 +473,6 @@
 				const appelloId = pageOrchestrator.iscritti.currentAppelloId;
 				const rows = document.querySelectorAll("#inserimentoMultiploBody tr");
 				const validi = ["18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "30L", "30l", "ASSENTE", "assente", "Assente", "RIPROVATO", "riprovato", "Riprovato", "RIMANDATO", "rimandato", "Rimandato"];
-				
-				// Controlla validità di tutti i voti inseriti
 				let hasInvalidVotes = false;
 				let invalidVotes = [];
 				
@@ -505,7 +480,6 @@
 					const studenteId = row.getAttribute("data-studente-id");
 					const votoInput = row.querySelector("input[name='voto']");
 					const voto = votoInput.value.trim();
-					
 					if (voto !== "" && !validi.includes(voto)) {
 						hasInvalidVotes = true;
 						const matricola = row.querySelector("td").textContent;
@@ -560,7 +534,6 @@
 		};
 		
 		this.showCorsiSection = function() {
-			// Hide all sections except corsi
 			document.getElementById("corsiSection").style.display = "block";
 			document.getElementById("corsiTable").style.display = "table";
 			document.getElementById("appelliSection").style.display = "none";
@@ -568,11 +541,7 @@
 			document.getElementById("modificaStudenteSection").style.display = "none";
 			document.getElementById("verbaleSection").style.display = "none";
 			document.getElementById("elencoVerbaliSection").style.display = "none";
-			
-			// Hide home button when on main page
 			document.getElementById("homeButton").style.display = "none";
-			
-			// Refresh the course list
 			this.corsi.show();
 		};
 	}

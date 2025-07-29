@@ -44,8 +44,6 @@ public class StudenteDAO {
 		}
 		return corsi;
 	}
-
-	// Cerca gli appelli di un determinato corso a cui lo studente è iscritto (cioè per cui esiste una valutazione)
 	public List<AppelloBean> cercaAppelliStudente(int id_corso) throws SQLException {
 		List<AppelloBean> appelli = new ArrayList<>();
 		String query = "SELECT a.id_appello, a.data " +
@@ -69,7 +67,8 @@ public class StudenteDAO {
 		return appelli;
 	}
 	
-	// Restituisce la lista degli studenti iscritti al corso identificato da id_corso
+	
+	
 	public List<Integer> getStudentiIscrittiCorso(int id_corso) throws SQLException {
 		List<Integer> studenti = new ArrayList<>();
 		String query = "SELECT id_studente "
@@ -86,7 +85,6 @@ public class StudenteDAO {
 		return studenti;
 	}
 
-	// Restituisce la lista degli studenti iscritti all'appello identificato da id_appello
 	public List<Integer> getStudentiIscrittiAppello(int id_appello) throws SQLException {
 		List<Integer> studenti = new ArrayList<>();
 		String query = "SELECT v.id_studente "
@@ -103,7 +101,6 @@ public class StudenteDAO {
 		return studenti;
 	}
 	
-	// Restituisce un oggetto che contiene tutte le informazioni da mostrare nella pagina esito riguardo l'appello dello studente
 	public StudenteAppelloBean getInfoAppello(int id_appello) throws SQLException {
 		StudenteAppelloBean infoAppello = new StudenteAppelloBean();
 		String query = "SELECT " +
@@ -148,7 +145,6 @@ public class StudenteDAO {
 		return infoAppello;
 	}
 
-	// Imposta lo stato_valutazione a 'rifiutato' per uno studente e un appello
 	public void setRifiutato(int id_appello) throws SQLException {
 		String query = "UPDATE valutazione SET stato_valutazione = ? "
 					 + "WHERE id_studente = ? AND id_appello = ?";
@@ -160,7 +156,6 @@ public class StudenteDAO {
 		}
 	}
 
-	// Aggiorna sia il voto che lo stato_valutazione per uno studente e un appello
 	public void setVotoEStato(int id_appello, String voto) throws SQLException {
 		String query = "UPDATE valutazione SET voto = ?, stato_valutazione = ? "
 					 + "WHERE id_studente = ? AND id_appello = ?";

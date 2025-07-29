@@ -1,5 +1,3 @@
--- registro_schema.sql
--- File per la creazione e la pulizia del database registro.
 
 DROP DATABASE IF EXISTS registro;
 CREATE DATABASE registro;

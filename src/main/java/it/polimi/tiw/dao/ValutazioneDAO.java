@@ -21,7 +21,6 @@ public class ValutazioneDAO {
         this.id_appello = idAppello;
     }
 
-    // Trova id degli studenti con stato PUBBLICATO o RIFIUTATO per questo appello
     public List<Integer> getIDStudentiPubbORif() throws SQLException {
         List<Integer> id_studenti = new ArrayList<>();
         String query = "SELECT v.id_studente " +
@@ -39,7 +38,6 @@ public class ValutazioneDAO {
         return id_studenti;
     }
 
-    // Riceve una lista di id degli studenti e seleziona le informazioni per ognuno di essi
     public List<IscrittiBean> getInfoStudentiAggiornati(int appId, List<Integer> studentIds) throws SQLException {
         if (studentIds == null || studentIds.isEmpty()) return new ArrayList<>();
         String inSql = studentIds.stream().map(id -> "?").collect(Collectors.joining(","));
@@ -73,8 +71,6 @@ public class ValutazioneDAO {
         }
     }
 
-    // Aggiorna stato di valutazione a VERBALIZZATO per tutti gli INSERITO o PUBBLICATO o RIFIUTATO
-    // Se RIFIUTATO, il voto diventa 'rimandato'
     public void aggiornaVerbalizzato() throws SQLException {
         String query = "UPDATE valutazione " +
                 "SET " +
@@ -87,19 +83,16 @@ public class ValutazioneDAO {
         }
     }
 
-    // Crea un nuovo verbale con id autoincrementato per questo appello
     public void creaVerbale() throws SQLException {
         String query = "INSERT INTO verbale (data_ora, id_appello, codice_verbale) VALUES (NOW(), ?, ?)";
         try (PreparedStatement pstatement = con.prepareStatement(query)) {
             pstatement.setInt(1, this.id_appello);
-            // Genera un codice verbale fittizio (puoi sostituire con la tua logica)
             int codiceVerbale = (int) (System.currentTimeMillis() % 1000000);
             pstatement.setInt(2, codiceVerbale);
             pstatement.executeUpdate();
         }
     }   
 
-    // Seleziona i dati dell'ultimo verbale creato per questo appello
     public VerbaleBean getUltimoVerbale() throws SQLException {
         VerbaleBean verbale = new VerbaleBean();
         String query = "SELECT v.id_verbale, v.codice_verbale, v.id_appello, a.data AS data_appello, v.data_ora, TIME(v.data_ora) as ora " +

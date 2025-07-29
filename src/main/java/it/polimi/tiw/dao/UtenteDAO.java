@@ -18,7 +18,7 @@ public class UtenteDAO {
 	}
 
 	public UtenteBean checkCredentials(String email, String password) throws SQLException {
-		//Query di check credenziali
+		
         String query = "SELECT id_utente, nome, cognome FROM utente WHERE email = ? AND password = ?";     
 		try (PreparedStatement pstatement = con.prepareStatement(query);) {
 			pstatement.setString(1, email);
@@ -30,7 +30,6 @@ public class UtenteDAO {
 					String nome = result.getString("nome");
 					String cognome = result.getString("cognome");
 					
-					// Controllo se è uno studente
 	                String studenteQuery = "SELECT matricola, corso_laurea FROM studente WHERE id_studente = ?";
 	                try (PreparedStatement psStudente = con.prepareStatement(studenteQuery)) {
 	                    psStudente.setInt(1, id);
@@ -42,8 +41,7 @@ public class UtenteDAO {
 	                        }
 	                    }
 	                }
-	                
-	                //Controllo se è un docente
+	           
 	                String docenteQuery = "SELECT 1 FROM docente WHERE id_docente = ?";
 	                try (PreparedStatement psDocente = con.prepareStatement(docenteQuery)) {
 	                    psDocente.setInt(1, id);
@@ -53,11 +51,11 @@ public class UtenteDAO {
 	                        }
 	                    }
 	                }
-	                //Trovato un utente generico nella query (errore)
+	                
 	                return null;
 				}
 				else {
-					return null; //check delle credenziali fallito
+					return null; 
 				}
 			}
 		}

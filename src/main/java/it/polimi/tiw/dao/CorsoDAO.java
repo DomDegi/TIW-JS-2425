@@ -18,7 +18,6 @@ public class CorsoDAO {
         this.id_corso = id_corso;
     }
 
-    // Cerca appelli di un certo corso
     public List<AppelloBean> cercaAppelli() throws SQLException {
         List<AppelloBean> appelli = new ArrayList<>();
         String query = "SELECT id_appello, data FROM appello WHERE id_corso = ? ORDER BY data DESC;";
@@ -37,7 +36,6 @@ public class CorsoDAO {
         return appelli;
     }
 
-    // Cerca id_docente per un corso
     public int cercaIdDocentePerCorso() throws SQLException {
         String query = "SELECT id_docente FROM corso WHERE id_corso = ?;";
         try (PreparedStatement pstatement = con.prepareStatement(query)) {

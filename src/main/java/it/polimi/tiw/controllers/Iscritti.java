@@ -118,7 +118,6 @@ public class Iscritti extends HttpServlet {
         AppelloDAO appelloDAO = new AppelloDAO(connection, id_appello);
 
         try {
-            // Verifica che l'appello appartenga al docente
             int docenteCorretto = appelloDAO.cercaIdDocentePerAppello();
             if (docenteCorretto != docente.getIDUtente()) {
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, "L'appello a cui vuoi accedere non è tuo");

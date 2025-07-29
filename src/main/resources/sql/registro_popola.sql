@@ -1,6 +1,5 @@
 USE registro;
 
--- Inserimento utenti (docenti e studenti)
 INSERT INTO utente (id_utente, email, password, cognome, nome) VALUES
 (1, 'mario.rossi@polimi.it', '1234', 'Rossi', 'Mario'),       -- docente
 (2, 'giulia.verdi@polimi.it', '5678', 'Verdi', 'Giulia'),     -- studente 1
@@ -15,13 +14,13 @@ INSERT INTO utente (id_utente, email, password, cognome, nome) VALUES
 (11, 'filippo.wang@polimi.it', 'filippo123', 'Wang', 'Filippo'), -- docente 3
 (12, 'domenico.degiorgio@polimi.it', 'domenico123', 'De Giorgio', 'Domenico'); -- studente 9
 
--- Docenti
+
 INSERT INTO docente (id_docente) VALUES
 (1),  -- Mario Rossi
 (6),  -- Sara Rossi
 (11); -- Filippo Wang
 
--- Studenti
+
 INSERT INTO studente (id_studente, matricola, corso_laurea) VALUES
 (2, 'S12345', 'Informatica'),
 (3, 'S67890', 'Informatica'),
@@ -33,7 +32,7 @@ INSERT INTO studente (id_studente, matricola, corso_laurea) VALUES
 (10, 'S66666', 'Fisica'),
 (12, 'S10101', 'High Performance Computing');
 
--- Corsi
+
 INSERT INTO corso (id_corso, nome, cfu, id_docente) VALUES
 (1, 'Tecnologie Informatiche per il Web', 6, 1),
 (2, 'Algoritmi e Strutture Dati', 9, 1),
@@ -43,7 +42,6 @@ INSERT INTO corso (id_corso, nome, cfu, id_docente) VALUES
 (6, 'Chimica', 9, 6),
 (7, 'Quantum Computing', 5, 11);
 
--- Iscrizione corsi (so3o studenti che poi hanno valutazioni/appelli)
 INSERT INTO iscrizione_corso (id_studente, id_corso, anno) VALUES
 (2, 1, 2024),
 (3, 1, 2024),
@@ -60,7 +58,6 @@ INSERT INTO iscrizione_corso (id_studente, id_corso, anno) VALUES
 (12, 7, 2024);
 
 
--- Appelli
 INSERT INTO appello (id_appello, id_corso, data) VALUES
 (1, 1, '2025-06-15'),
 (2, 1, '2025-07-01'),
@@ -78,14 +75,13 @@ INSERT INTO appello (id_appello, id_corso, data) VALUES
 (14, 3, '2025-07-12'),
 (15, 3, '2025-09-07');
 
--- Verbali (solo per appelli verbalizzati)
 INSERT INTO verbale (id_verbale, codice_verbale, id_appello) VALUES
 (1, 101, 1),
 (2, 102, 2),
 (3, 201, 3),
 (4, 301, 4);
 
--- Valutazioni (solo per studenti iscritti a corso/appello, nessun duplicato, ENUM coerenti)
+
 INSERT INTO valutazione (id_studente, id_appello, voto, stato_valutazione, id_verbale) VALUES
 -- Tecnologie Web (corso 1)
 (2, 1, '28', 'VERBALIZZATO', 1),      -- Giulia Verdi

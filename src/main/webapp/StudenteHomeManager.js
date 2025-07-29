@@ -5,7 +5,6 @@
 		if (sessionStorage.getItem("email") == null || sessionStorage.getItem("role") != "studente") {
 			window.location.href = "index.html";
 		} else {
-			//display initial content
 			pageOrchestrator.start();
 			pageOrchestrator.refresh();
 		}
@@ -13,8 +12,6 @@
 		const cognome = sessionStorage.getItem("cognome") || "";
 		const nomeCompleto = nome && cognome ? `${nome} ${cognome}` : sessionStorage.getItem("email");
 		document.getElementById("username").textContent = nomeCompleto;
-		
-		// Capitalizza il ruolo per la visualizzazione
 		const role = sessionStorage.getItem("role") || "";
 		const roleCapitalized = role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
 		const roleElement = document.getElementById("role");
@@ -26,8 +23,6 @@
 			window.location.href = "index.html";
 		});
 	}, false);
-
-	// Funzione per formattare gli stati di valutazione (toglie il _ da NON_INSERITO)
 	function formatStatoValutazione(stato) {
 		if (!stato) return '-';
 		return stato.replace('_', ' ');
@@ -70,17 +65,17 @@
 		};
 
 		this.update = function(corsiList) {
-			this.corsiBody.innerHTML = ""; // Pulisce righe precedenti
+			this.corsiBody.innerHTML = ""; 
 			corsiList.forEach(corso => {
 				let row = document.createElement("tr");
 				let cell = document.createElement("td");
-				cell.textContent = corso.nome; // Corretto: usa "nome" come nel JSON
+				cell.textContent = corso.nome;
 				cell.style.textDecoration = "underline";
 				cell.style.color = "#007bff";
 				row.appendChild(cell);
 
 				row.addEventListener("click", () => {
-					pageOrchestrator.appelli.show(corso.id_corso); // Richiama funzione con id corso
+					pageOrchestrator.appelli.show(corso.id_corso);
 				});
 
 				this.corsiBody.appendChild(row);
@@ -195,10 +190,8 @@
 						addRow("Corso di laurea:", esito.corsolaurea);
 						addRow("Voto:", esito.voto != null ? esito.voto : "Non definito");
 						addRow("Stato:", formatStatoValutazione(esito.statodivalutazione));
-
 						this.esitoContent.appendChild(card);
-
-						// Mostra pulsante rifiuto solo se il voto è PUBBLICATO e non è già RIFIUTATO
+						
 						if (esito.voto != null && esito.statodivalutazione === "PUBBLICATO") {
 							this.rifiutaButton.style.display = "inline-block";
 							this.rifiutaButton.disabled = false;
@@ -215,9 +208,7 @@
 							this.rifiutaButton.style.display = "none";
 							this.trashcan.style.display = "none";
 						}
-
 						this.esitoSection.style.display = "block";
-						// Mostra il pulsante home
 						if (homeBtn) homeBtn.style.display = "block";
 					} else {
 						document.getElementById("message").textContent = req.responseText;
@@ -225,46 +216,32 @@
 				}
 			});
 		};
-
-		// Drag & Drop implementation
-		// 1. Set dataTransfer on dragstart
 		this.esitoContent.addEventListener("dragstart", (ev) => {
 			ev.dataTransfer.setData("text/plain", "esitoContentDragged");
-			// You can style the dragging element if you want
 		});
-
-		// 2. Allow drop on trashcan
 		this.trashcan.addEventListener("dragover", (ev) => {
-			ev.preventDefault(); // allow drop
-			this.trashcan.style.filter = "brightness(0.8)"; // optional highlight effect
+			ev.preventDefault(); 
+			this.trashcan.style.filter = "brightness(0.8)"; 
 		});
 
 		this.trashcan.addEventListener("dragleave", (ev) => {
-			this.trashcan.style.filter = "none"; // remove highlight effect
+			this.trashcan.style.filter = "none"; 
 		});
-
-		// 3. On drop, trigger rifiutaButton click logic
 		this.trashcan.addEventListener("drop", (ev) => {
 			ev.preventDefault();
 			this.trashcan.style.filter = "none";
-
-			// You could also check ev.dataTransfer.getData to confirm
 			const data = ev.dataTransfer.getData("text/plain");
 			if (data === "esitoContentDragged") {
-				// Trigger the rifiuta action programmatically
 				document.getElementById("confirmModal").style.display = "flex";
 			}
 		});
 
 		this.rifiutaButton.addEventListener("click", () => {
 			if (!this.currentAppelloId || !this.currentCorsoId) return;
-
-			this.rifiutaButton.disabled = true; // previeni doppio click
-
+			this.rifiutaButton.disabled = true; 
 			makeCall("POST", "esito?appelloId=" + this.currentAppelloId + "&id_corso=" + this.currentCorsoId, null, (req) => {
 				if (req.readyState === XMLHttpRequest.DONE) {
 					if (req.status === 200) {
-						// Ricarica i dati dell'esito per mostrare lo stato aggiornato
 						pageOrchestrator.esito.show(this.currentAppelloId, this.currentCorsoId);
 						document.getElementById("message").textContent = "Voto rifiutato con successo!";
 						setTimeout(() => {
@@ -333,9 +310,6 @@
 			if (el) el.style.display = "none";
 		});
 	}
-
-	// Migliora la visualizzazione della pagina EsitoStudente
-	// Applica una card e layout più leggibile nella funzione Esito.show
 	const esitoSection = document.getElementById("esitoSection");
 	if (esitoSection) {
 		esitoSection.style.background = "#fff";

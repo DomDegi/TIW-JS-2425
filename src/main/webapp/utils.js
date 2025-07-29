@@ -8,7 +8,6 @@ function makeCall(method, url, formElement, callback) {
     req.withCredentials = true;
 
     if (formElement instanceof HTMLFormElement) {
-        // Serializza i dati come x-www-form-urlencoded
         const formData = new FormData(formElement);
         const params = new URLSearchParams(formData).toString();
         req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -18,13 +17,11 @@ function makeCall(method, url, formElement, callback) {
         req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
         req.send(formElement);
     } else {
-        // Se è null o undefined, non invia dati
         req.send();
     }
 }
 
 function addUniqueNavButton(container, buttonId, buttonText, clickHandler) {
-    // Rimuovi il pulsante esistente se presente
     const existingButton = document.getElementById(buttonId);
     if (existingButton) {
         existingButton.remove();
@@ -42,8 +39,6 @@ function addUniqueNavButton(container, buttonId, buttonText, clickHandler) {
     button.style.cursor = "pointer";
     
     button.addEventListener("click", clickHandler);
-    
-    // Inserisci il pulsante all'inizio del container
     if (container.firstChild) {
         container.insertBefore(button, container.firstChild);
     } else {

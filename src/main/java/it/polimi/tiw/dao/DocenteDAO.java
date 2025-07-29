@@ -19,7 +19,6 @@ public class DocenteDAO {
         this.idDocente = idDocente;
     }
 
-    // Cerca i corsi di un certo docente
     public List<CorsoBean> cercaCorsi() throws SQLException {
         List<CorsoBean> corsi = new ArrayList<>();
         String query = "SELECT id_corso, nome, cfu FROM corso WHERE id_docente = ? ORDER BY nome DESC;";
@@ -39,7 +38,6 @@ public class DocenteDAO {
         return corsi;
     }
 
-    // Cerca i verbali di un certo docente
     public List<DocenteVerbaleBean> cercaVerbali() throws SQLException {
         List<DocenteVerbaleBean> verbali = new ArrayList<>();
         String query = "SELECT c.nome AS nome_corso, v.data_ora AS dataVerbale, a.data AS dataAppello " +

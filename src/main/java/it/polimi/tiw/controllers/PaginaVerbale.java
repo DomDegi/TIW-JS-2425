@@ -141,7 +141,7 @@ public class PaginaVerbale extends HttpServlet {
         VerbaleBean verbale = new VerbaleBean();
         try {
             verbale = valutazioneDAO.getUltimoVerbale();
-            // Converti il verbale in una mappa con stringhe
+            
             Map<String, Object> verbaleMap = new HashMap<>();
             verbaleMap.put("id_verbale", verbale.getIDVverbale());
             verbaleMap.put("codice", verbale.getCodice());
